@@ -2,6 +2,7 @@ import { useMCP } from "@/hooks/useMCP";
 import { useState } from "react";
 import { ChatPanel } from "./components/ChatPanel";
 import { SettingsDialog } from "./components/SettingsDialog";
+import { LoadingBanner } from "./components/LoadingBanner";
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -10,7 +11,7 @@ function App() {
   const {
     status,
     pending,
-    connect,
+    isConnecting,
     messages,
     sendQuery,
     addMessage,
@@ -19,6 +20,7 @@ function App() {
     cancelRequest,
   } = useMCP({
     serverUrl,
+    autoConnect: true,
   });
 
   const handleSendMessage = async (message: string) => {
@@ -32,6 +34,9 @@ function App() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
+      {/* Loading Banner */}
+      <LoadingBanner isVisible={isConnecting} />
+      
       {/* Sidebar */}
       <div className="w-full border-r flex flex-col h-full">
         <ChatPanel
@@ -47,7 +52,6 @@ function App() {
 
       {/* Settings Dialog */}
       <SettingsDialog
-        onConnect={connect}
         serverUrl={serverUrl}
         isOpen={isSettingsOpen}
         connectionStatus={status}

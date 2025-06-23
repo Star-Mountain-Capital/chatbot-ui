@@ -26,7 +26,21 @@ export function useMCP(options: UseMcpClientOptions) {
   const [image, setImage] = useState<undefined | string>();
   const [status, setStatus] = useState<Status>("disconnected");
   const [messages, setMessages] = useState<ChatMessageProps[]>([initMessage]);
+  const [isConnecting, setIsConnecting] = useState(false);
 
+  // Connect to server
+  const connect = useCallback(async () => {
+    if (!clientRef.current) return;
+    try {
+      setIsConnecting(true);
+      await clientRef.current.connect();
+    } catch (error) {
+      console.error("Failed to connect:", error);
+    } finally {
+      setIsConnecting(false);
+    }
+  }, []);
+  
   // Initialize client
   useEffect(() => {
     clientRef.current = new McpClient({
@@ -39,6 +53,13 @@ export function useMCP(options: UseMcpClientOptions) {
         clientRef.current.disconnect().catch(console.error);
     };
   }, [options.serverUrl]); // Only re-initialize when serverUrl changes
+
+  // Auto-connect when component mounts and serverUrl is available
+  useEffect(() => {
+    if (options.autoConnect && clientRef.current && status === "disconnected") {
+      connect();
+    }
+  }, [options.autoConnect, status, connect]);
 
   // handle agent callback
   const handleProgress = useCallback((notif: ServerNotification) => {
@@ -62,16 +83,6 @@ export function useMCP(options: UseMcpClientOptions) {
       },
     ]);
   };
-
-  // Connect to server
-  const connect = useCallback(async () => {
-    if (!clientRef.current) return;
-    try {
-      await clientRef.current.connect();
-    } catch (error) {
-      console.error("Failed to connect:", error);
-    }
-  }, []);
 
   // Disconnect from server
   const disconnect = useCallback(async () => {
@@ -107,6 +118,7 @@ export function useMCP(options: UseMcpClientOptions) {
     image,
     status,
     pending,
+    isConnecting,
     connect,
     messages,
     sendQuery,

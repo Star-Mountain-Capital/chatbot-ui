@@ -18,7 +18,6 @@ interface SettingsDialogProps {
   serverUrl: string;
   onServerUrlChange: (url: string) => void;
   connectionStatus: Status;
-  onConnect: () => void;
   onDisconnect: () => void;
 }
 
@@ -28,7 +27,6 @@ export function SettingsDialog({
   serverUrl,
   onServerUrlChange,
   connectionStatus,
-  onConnect,
   onDisconnect,
 }: SettingsDialogProps) {
   const [localServerUrl, setLocalServerUrl] = useState(serverUrl);
@@ -36,7 +34,6 @@ export function SettingsDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onServerUrlChange(localServerUrl);
-    onConnect();
     onClose();
   };
 
@@ -74,7 +71,7 @@ export function SettingsDialog({
           </div>
 
           <DialogFooter className="sm:justify-end">
-            {connectionStatus === "connected" ? (
+            {connectionStatus === "connected" && (
               <Button
                 type="button"
                 variant="destructive"
@@ -85,9 +82,8 @@ export function SettingsDialog({
               >
                 Disconnect
               </Button>
-            ) : (
-              <Button type="submit">Connect</Button>
             )}
+            <Button type="submit">Save</Button>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>

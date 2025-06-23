@@ -1,7 +1,7 @@
 import { ChatMessage, ChatMessageProps } from "@/components/ChatMessage";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Settings, Trash2, XCircle, Moon, Sun } from "lucide-react";
+import { Send, Trash2, XCircle, Moon, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import { Switch } from "@/components/ui/switch";
@@ -22,7 +22,6 @@ export function ChatPanel({
   onClearChat,
   messages,
   connectionStatus,
-  onOpenSettings,
   hasActiveRequest = false,
 }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState("");
@@ -91,15 +90,6 @@ export function ChatPanel({
             aria-label="Clear chat"
           >
             <Trash2 size={18} />
-          </Button>
-          <Button
-            onClick={onOpenSettings}
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            aria-label="Settings"
-          >
-            <Settings size={18} />
           </Button>
         </div>
       </div>
