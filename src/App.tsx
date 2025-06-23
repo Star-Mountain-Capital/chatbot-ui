@@ -5,7 +5,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [serverUrl, setServerUrl] = useState("http://40.76.117.20:8000/sse");
+  const [serverUrl, setServerUrl] = useState("https://chatbot.smc.soallabs.com/sse");
 
   const {
     status,
