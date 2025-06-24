@@ -9,7 +9,8 @@ export const SECURITY_CONFIG = {
 
 // Helper function to check if a domain is allowed
 export function isAllowedDomain(domain: string): boolean {
-  const normalizedAllowed = SECURITY_CONFIG.ALLOWED_IFRAME_DOMAIN.replace(/\/$/, '');
+  // Normalize domain (remove trailing slash)
   const normalizedDomain = domain.replace(/\/$/, '');
-  return normalizedDomain === normalizedAllowed;
+  // Allow any subdomain of starmountaincapital.com (including the main domain)
+  return /^https?:\/\/[a-zA-Z0-9.-]*starmountaincapital\.com$/.test(normalizedDomain);
 } 

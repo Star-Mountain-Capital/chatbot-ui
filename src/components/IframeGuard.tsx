@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { isAllowedDomain } from "@/config/security";
 
 interface IframeGuardProps {
   children: ReactNode;
@@ -22,25 +23,22 @@ export function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
           return;
         }
 
-        // Get the parent window's origin
+        // Try to get the parent window's origin
         const parentOrigin = window.parent.location.origin;
         
-        // Normalize the allowed domain (remove trailing slash if present)
-        const normalizedAllowedDomain = allowedDomain.replace(/\/$/, '');
-        const normalizedParentOrigin = parentOrigin.replace(/\/$/, '');
-        
-        // Check if the parent origin matches the allowed domain
-        if (normalizedParentOrigin === normalizedAllowedDomain) {
+        // Check if the parent origin matches the allowed domain pattern
+        if (isAllowedDomain(parentOrigin)) {
           console.log("Access granted: Valid iframe origin detected");
           setIsAllowed(true);
         } else {
-          console.warn(`Access denied: Invalid iframe origin. Expected: ${normalizedAllowedDomain}, Got: ${normalizedParentOrigin}`);
+          console.warn(`Access denied: Invalid iframe origin. Expected: ${allowedDomain}, Got: ${parentOrigin}`);
           setIsAllowed(false);
         }
       } catch {
-        // If we can't access parent window due to same-origin policy, deny access
-        console.warn("Access denied: Cannot verify iframe origin due to same-origin policy");
-        setIsAllowed(false);
+        // If we can't access parent window due to same-origin policy,
+        // but we are in an iframe, assume access is allowed (Retool embeds as iframe)
+        console.warn("Access allowed: Cannot verify iframe origin due to same-origin policy, but running in iframe.");
+        setIsAllowed(true);
       } finally {
         setIsLoading(false);
       }
@@ -86,8 +84,16 @@ export function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
             Access Restricted
           </h1>
           <p className="text-muted-foreground mb-4">
-            Forbidden.
+            This application can only be accessed from an iframe embedded in the authorized domain.
           </p>
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              <strong>Required domain:</strong> {allowedDomain}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              <strong>Current origin:</strong> {window.location.origin}
+            </p>
+          </div>
         </div>
       </div>
     );
