@@ -107,7 +107,7 @@ export class McpClient {
 
     return await this.client.request(request, schema, {
       signal: options?.signal,
-      timeout: 60000,
+      timeout: 999999999999999,
     });
   }
 
