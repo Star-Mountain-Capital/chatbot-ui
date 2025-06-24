@@ -83,17 +83,6 @@ export function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
           <h1 className="text-xl font-semibold text-foreground mb-2">
             Access Restricted
           </h1>
-          <p className="text-muted-foreground mb-4">
-            This application can only be accessed from an iframe embedded in the authorized domain.
-          </p>
-          <div className="bg-muted p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">
-              <strong>Required domain:</strong> {allowedDomain}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              <strong>Current origin:</strong> {window.location.origin}
-            </p>
-          </div>
         </div>
       </div>
     );
