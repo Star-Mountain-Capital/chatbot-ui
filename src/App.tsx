@@ -4,11 +4,11 @@ import { ChatPanel } from "./components/ChatPanel";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { LoadingBanner } from "./components/LoadingBanner";
 import { IframeGuard } from "./components/IframeGuard";
-import { SECURITY_CONFIG } from "./config/security";
+import { isDevelopmentMode, SECURITY_CONFIG } from "./config/security";
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [serverUrl, setServerUrl] = useState("https://obliging-arguably-raven.ngrok-free.app/sse");
+  const [serverUrl, setServerUrl] = useState(isDevelopmentMode() ? "https://obliging-arguably-raven.ngrok-free.app/sse": "https://chatbot.smc.soallabs.com/sse");
 
   const {
     status,
