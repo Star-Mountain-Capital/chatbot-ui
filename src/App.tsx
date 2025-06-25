@@ -8,7 +8,7 @@ import { SECURITY_CONFIG } from "./config/security";
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [serverUrl, setServerUrl] = useState("https://chatbot.smc.soallabs.com/sse");
+  const [serverUrl, setServerUrl] = useState("https://obliging-arguably-raven.ngrok-free.app/sse");
 
   const {
     status,

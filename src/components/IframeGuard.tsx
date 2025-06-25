@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { isAllowedDomain } from "@/config/security";
+import { isAllowedDomain, isDevelopmentMode } from "@/config/security";
 
 interface IframeGuardProps {
   children: ReactNode;
@@ -12,6 +12,14 @@ export function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
 
   useEffect(() => {
     const checkIframeAccess = () => {
+      // Bypass iframe check in development mode
+      if (isDevelopmentMode()) {
+        console.log("Development mode: Bypassing iframe access check");
+        setIsAllowed(true);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         // Check if we're in an iframe
         const isInIframe = window !== window.parent;

@@ -1,3 +1,4 @@
+import { isDevelopmentMode } from "@/config/security";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { RequestOptions } from "@modelcontextprotocol/sdk/shared/protocol.js";
@@ -26,6 +27,7 @@ export class McpClient {
   private connectionStatus: Status = "disconnected";
   private progessToken: number = 0;
   private options: Options;
+  private proxyUrl: URL = new URL("http://localhost:3000/sse");
 
   constructor(options: Options) {
     this.options = options;
@@ -37,8 +39,12 @@ export class McpClient {
         name: "chrome-use",
         version: "1.0.0",
       });
-
-      this.transport = new SSEClientTransport(new URL(this.options.serverUrl));
+      if (isDevelopmentMode()){
+        this.proxyUrl.searchParams.append("url", this.options.serverUrl);
+        this.transport = new SSEClientTransport(this.proxyUrl);
+      }else{
+        this.transport = new SSEClientTransport(new URL(this.options.serverUrl));
+      }
       // Connect to the server
       await this.client.connect(this.transport);
       this.connectionStatus = "connected";
@@ -107,7 +113,7 @@ export class McpClient {
 
     return await this.client.request(request, schema, {
       signal: options?.signal,
-      timeout: 999999999999999,
+      timeout: 300000,
     });
   }
 
