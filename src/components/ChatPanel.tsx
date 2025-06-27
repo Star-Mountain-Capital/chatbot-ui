@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import { Switch } from "@/components/ui/switch";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { ContextMenu } from "./ContextMenu";
 
 // Custom tooltip content with improved arrow styling
 function CustomTooltipContent({
@@ -160,6 +161,9 @@ export function ChatPanel({
           className="flex justify-center items-end gap-2"
         >
           <div className="relative w-[50%]">
+            <div className="absolute flex items-center gap-2 w-full p-2 z-50">
+              <ContextMenu />
+            </div>
             <div className="flex-1 relative">
               <Textarea
                 ref={textareaRef}
@@ -179,7 +183,7 @@ export function ChatPanel({
                     : "Connect to start chatting..."
                 }
                 disabled={connectionStatus !== "connected" || hasActiveRequest}
-                className="min-h-[100px] max-h-[120px] resize-none scrollbar-hide"
+                className="min-h-[150px] max-h-[120px] resize-none scrollbar-hide pt-10"
                 rows={1}
                 style={{ scrollbarWidth: "none" }}
               />
