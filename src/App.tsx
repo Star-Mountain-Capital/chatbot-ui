@@ -5,47 +5,47 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { LoadingBanner } from "./components/LoadingBanner";
 import { IframeGuard } from "./components/IframeGuard";
 import { isDevelopmentMode, SECURITY_CONFIG } from "./config/security";
+import { v4 as uuidv4 } from "uuid";
+import { useStore } from "@/store";
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [serverUrl, setServerUrl] = useState(isDevelopmentMode() ? "https://obliging-arguably-raven.ngrok-free.app/sse": "https://chatbot.smc.soallabs.com/sse");
+  const [serverUrl, setServerUrl] = useState(
+    isDevelopmentMode()
+      ? "https://obliging-arguably-raven.ngrok-free.app/sse"
+      : "https://chatbot.smc.soallabs.com/sse"
+  );
 
-  const {
-    status,
-    pending,
-    isConnecting,
-    messages,
-    sendQuery,
-    addMessage,
-    disconnect,
-    clearMessages,
-    cancelRequest,
-  } = useMCP({
-    serverUrl,
-    autoConnect: true,
-  });
+  // Get chat state from store
+  const { messages, status, pending, progressMap, addMessage } = useStore();
+
+  const { isConnecting, sendQuery, disconnect, clearMessages, cancelRequest } =
+    useMCP({
+      serverUrl,
+      autoConnect: true,
+    });
 
   const handleSendMessage = async (message: string) => {
-    addMessage("user", message);
+    const messageId = uuidv4();
+    addMessage("user", message, messageId);
     try {
-      await sendQuery(message);
+      await sendQuery(message, messageId);
     } catch (error) {
-      addMessage("tool", `Error running the agent ${error}`);
+      console.error(error);
     }
   };
 
   return (
     <IframeGuard allowedDomain={SECURITY_CONFIG.ALLOWED_IFRAME_DOMAIN}>
       <div className="flex h-screen bg-background text-foreground">
-        {/* Loading Banner */}
         <LoadingBanner isVisible={isConnecting} />
-        
-        {/* Sidebar */}
+
         <div className="w-full border-r flex flex-col h-full">
           <ChatPanel
             messages={messages}
             connectionStatus={status}
             hasActiveRequest={pending}
+            progressMap={progressMap}
             onClearChat={clearMessages}
             onCancelRequest={cancelRequest}
             onSendMessage={handleSendMessage}
@@ -53,7 +53,6 @@ function App() {
           />
         </div>
 
-        {/* Settings Dialog */}
         <SettingsDialog
           serverUrl={serverUrl}
           isOpen={isSettingsOpen}
