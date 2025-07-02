@@ -23,6 +23,9 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
   messages: [initMessage],
   isConnecting: false,
   progressMap: {},
+  filtersMap: {},
+  sessionId: "",
+  userId: "",
 
   // Actions
   setPending: (pending) => set({ pending }),
@@ -81,6 +84,18 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
           : msg
       ),
     })),
+
+  setFilters: (messageId, filters) =>
+    set((state) => ({
+      filtersMap: {
+        ...state.filtersMap,
+        [messageId]: filters,
+      },
+    })),
+
+  setSessionId: (sessionId) => set({ sessionId }),
+  
+  setUserId: (userId) => set({ userId }),
 
   getThinkingTime: (messageId) => {
     const { messages } = get();

@@ -1,12 +1,25 @@
 import { ChatMessageProps, MessageRole } from "@/components/ChatMessage";
 import { Status } from "@/lib/client";
 
+export interface Filter {
+  column: string;
+  enum_values?: string[];
+  format?: string;
+  is_required: boolean;
+  name: string;
+  table: string;
+  type: string;
+}
+
 export interface ChatState {
   pending: boolean;
   status: Status;
   messages: ChatMessageProps[];
   isConnecting: boolean;
   progressMap: Record<string, string[]>;
+  filtersMap: Record<string, Filter[]>;
+  sessionId: string;
+  userId: string;
 }
 
 export interface ChatActions {
@@ -22,6 +35,9 @@ export interface ChatActions {
   setThinkingEndTime: (messageId: string, endTime: Date) => void;
   updateMessageContent: (messageId: string, content: string) => void;
   getThinkingTime: (messageId: string) => number;
+  setFilters: (messageId: string, filters: Filter[]) => void;
+  setSessionId: (sessionId: string) => void;
+  setUserId: (userId: string) => void;
 }
 
 export type ChatSlice = ChatState & ChatActions;

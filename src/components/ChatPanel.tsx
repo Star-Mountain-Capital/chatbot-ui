@@ -2,12 +2,12 @@ import { ChatMessage, ChatMessageProps } from "@/components/ChatMessage";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
-import { Send, Trash2, XCircle, Moon, Sun, Info } from "lucide-react";
+import { Send, XCircle, Info } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/components/theme-provider";
-import { Switch } from "@/components/ui/switch";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ContextMenu } from "./ContextMenu";
+import { FilterInput } from "./FilterInput";
+import { useStore } from "@/store";
 
 // Custom tooltip content with improved arrow styling
 function CustomTooltipContent({
@@ -34,10 +34,9 @@ function CustomTooltipContent({
 interface ChatPanelProps {
   onSendMessage: (message: string) => void;
   onCancelRequest?: () => void;
-  onClearChat?: () => void;
+  onSendFilterResponse?: (messageId: string, filterValues: Record<string, string>) => void;
   messages: ChatMessageProps[];
   connectionStatus: string;
-  onOpenSettings: () => void;
   progressMap?: Record<string, string[]>;
   currentMessageId?: string | null;
   hasActiveRequest?: boolean;
@@ -46,7 +45,7 @@ interface ChatPanelProps {
 export function ChatPanel({
   onSendMessage,
   onCancelRequest,
-  onClearChat,
+  onSendFilterResponse,
   messages,
   connectionStatus,
   progressMap = {},
@@ -57,7 +56,24 @@ export function ChatPanel({
   const [isHovering, setIsHovering] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { theme, setTheme } = useTheme();
+
+  // Get filters from store
+  const { filtersMap } = useStore();
+
+  // Find the most recent message that has filters and is still active
+  const activeFilters = (() => {
+    // Get the most recent message with filters
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (filtersMap[message.messageId]) {
+        return {
+          messageId: message.messageId,
+          filters: filtersMap[message.messageId]
+        };
+      }
+    }
+    return null;
+  })();
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -87,8 +103,6 @@ export function ChatPanel({
     return () => clearTimeout(timer);
   }, [isHovering]);
 
-  // Get progress steps for the current message
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -101,46 +115,8 @@ export function ChatPanel({
     }
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-3 border-b">
-        <h2 className="text-lg font-semibold">SMC Assistant</h2>
-        <div className="flex items-center space-x-2">
-          <div
-            className={`size-3 rounded-full animate-pulse ${
-              connectionStatus === "connected"
-                ? "bg-green-500"
-                : connectionStatus === "error"
-                ? "bg-red-500"
-                : "bg-gray-400"
-            }`}
-          />
-          <div className="flex items-center mr-2">
-            <Switch
-              checked={theme === "dark"}
-              onCheckedChange={toggleTheme}
-              className="mx-1"
-              iconOn={<Moon className="h-3 w-3 text-blue-300" />}
-              iconOff={<Sun className="h-3 w-3 text-yellow-300" />}
-            />
-          </div>
-          <Button
-            onClick={onClearChat}
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            disabled={messages.length <= 1}
-            aria-label="Clear chat"
-          >
-            <Trash2 size={18} />
-          </Button>
-        </div>
-      </div>
-
       <div className="flex-1 overflow-y-auto p-4 space-y-4 theme-scrollbar flex justify-center">
         <div className="w-[50%]">
           {messages.map((msg, index) => (
@@ -152,7 +128,6 @@ export function ChatPanel({
             />
           ))}
         </div>
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-3">
@@ -161,6 +136,15 @@ export function ChatPanel({
           className="flex justify-center items-end gap-2"
         >
           <div className="relative w-[50%]">
+            {/* Show FilterInput when there are active filters */}
+            {activeFilters && onSendFilterResponse && (
+              <FilterInput
+                filters={activeFilters.filters}
+                messageId={activeFilters.messageId}
+                onSubmit={onSendFilterResponse}
+              />
+            )}
+            
             <div className="absolute flex items-center gap-2 w-full p-2 z-50">
               <ContextMenu />
             </div>
