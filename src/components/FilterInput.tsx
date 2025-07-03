@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Filter } from "@/store/types";
+import { useStore } from "@/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -168,16 +169,73 @@ function DatePicker({
   );
 }
 
+// Filter mapping configuration - easily extensible for new filter types
+const FILTER_MAPPINGS = {
+  investment: {
+    dataSource: 'assets',
+    valueField: 'name',
+    placeholder: 'Select investment...'
+  },
+} as const;
+
+type FilterMappingKey = keyof typeof FILTER_MAPPINGS;
+
 export function FilterInput({
   filters,
   messageId,
   onSubmit,
 }: FilterInputProps) {
-  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const {businessEntities, selectedItems} = useStore();
+  console.log(selectedItems)
+  
+  // Initialize filter values with defaults from selectedItems
+  const getInitialFilterValues = () => {
+    const initialValues: Record<string, string> = {};
+    
+    filters.forEach(filter => {
+      if (filter.name.toLowerCase() === 'investment') {
+        // Check if there's an asset in selectedItems
+        const selectedAsset = selectedItems.find(item => item.type === 'assets');
+        if (selectedAsset) {
+          initialValues[filter.name] = selectedAsset.name;
+        }
+      }
+    });
+    
+    return initialValues;
+  };
+  
+  const [filterValues, setFilterValues] = useState<Record<string, string>>(getInitialFilterValues());
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 console.log(filters)
+
+  // Helper function to get options for mapped filters
+  const getMappedFilterOptions = (filterName: string): string[] => {
+    const normalizedFilterName = filterName.toLowerCase() as FilterMappingKey;
+    const mapping = FILTER_MAPPINGS[normalizedFilterName];
+    
+    if (!mapping) return [];
+    
+    const dataSource = businessEntities[mapping.dataSource as keyof typeof businessEntities];
+    if (!Array.isArray(dataSource)) return [];
+    
+    return dataSource.map((item) => {
+      // Handle known fields from BusinessEntity
+      if (mapping.valueField === 'name') return item.name;
+      if (mapping.valueField === 'id') return item.id;
+      if (mapping.valueField === 'type') return item.type;
+      return '';
+    }).filter(Boolean);
+  };
+
+  // Helper function to get placeholder for mapped filters
+  const getMappedFilterPlaceholder = (filterName: string): string => {
+    const normalizedFilterName = filterName.toLowerCase() as FilterMappingKey;
+    const mapping = FILTER_MAPPINGS[normalizedFilterName];
+    return mapping?.placeholder || `Select ${filterName}...`;
+  };
   // Animation effect when component mounts
   useEffect(() => {
     // Small delay to ensure smooth animation
@@ -238,6 +296,10 @@ console.log(filters)
     const filterType = filter.type.toLowerCase();
     const isEnum = filter.enum_values && filter.enum_values.length > 0;
     const isDate = filterType === "date" || filter.format === "date";
+    
+    // Check if this filter has a mapping to business entities data
+    const mappedOptions = getMappedFilterOptions(filter.name);
+    const hasMappedOptions = mappedOptions.length > 0;
 
     return (
       <div key={filter.name} className="space-y-2">
@@ -246,26 +308,36 @@ console.log(filters)
           {filter.is_required && <span className="text-red-300 ml-1">*</span>}
         </Label>
         
-        {isEnum ? (
+        {hasMappedOptions ? (
+          <SearchableEnumPicker
+            filter={{
+              ...filter,
+              enum_values: mappedOptions
+            }}
+            value={value}
+            onChange={(newValue) => handleInputChange(filter.name, newValue)}
+            error={error}
+          />
+        ) : isEnum ? (
           <SearchableEnumPicker
             filter={filter}
             value={value}
             onChange={(newValue) => handleInputChange(filter.name, newValue)}
             error={error}
           />
-                 ) : isDate ? (
-           <DatePicker
-             value={value}
-             onChange={(newValue) => handleInputChange(filter.name, newValue)}
-             error={error}
-           />
-         ) : (
+        ) : isDate ? (
+          <DatePicker
+            value={value}
+            onChange={(newValue) => handleInputChange(filter.name, newValue)}
+            error={error}
+          />
+        ) : (
           <Input
             id={filter.name}
             type="text"
             value={value}
             onChange={(e) => handleInputChange(filter.name, e.target.value)}
-            placeholder={`Enter ${filter.name}...`}
+            placeholder={hasMappedOptions ? getMappedFilterPlaceholder(filter.name) : `Enter ${filter.name}...`}
             className={`w-full ${
               error ? "border-red-300 focus-visible:ring-red-300" : ""
             }`}

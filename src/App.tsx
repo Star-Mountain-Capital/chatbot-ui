@@ -7,6 +7,7 @@ import { isDevelopmentMode, SECURITY_CONFIG } from "./config/security";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "@/store";
 import { useWsClient } from "@/hooks/useWsClient";
+import { useEffect } from "react";
 
 function App() {
   const serverUrl = isDevelopmentMode()
@@ -20,6 +21,7 @@ function App() {
     pending,
     progressMap,
     addMessage,
+    fetchBusinessEntities,
   } = useStore();
 
   const { isConnecting, sendQuery, cancelRequest, sendFilterResponse, getChatHistory } =
@@ -27,6 +29,11 @@ function App() {
       serverUrl,
       autoConnect: true,
     });
+
+  // Fetch business entities on app load
+  useEffect(() => {
+    fetchBusinessEntities();
+  }, [fetchBusinessEntities]);
 
   const handleSendMessage = async (message: string) => {
     const messageId = uuidv4();

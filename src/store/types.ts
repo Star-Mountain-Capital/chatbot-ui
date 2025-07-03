@@ -1,5 +1,6 @@
 import { ChatMessageProps, MessageRole } from "@/components/ChatMessage";
 import { Status } from "@/lib/client";
+import { BusinessEntitiesSlice } from "./slices/businessEntitiesSlice";
 
 export interface Filter {
   column: string;
@@ -8,6 +9,12 @@ export interface Filter {
   is_required: boolean;
   name: string;
   table: string;
+  type: string;
+}
+
+export interface SelectedItem {
+  id: string;
+  name: string;
   type: string;
 }
 
@@ -88,4 +95,4 @@ export interface SessionActions {
 export type ChatSlice = ChatState & ChatActions;
 export type SessionSlice = SessionState & SessionActions;
 
-export type StoreSlice = ChatSlice & SessionSlice;
+export type StoreSlice = ChatSlice & SessionSlice & BusinessEntitiesSlice;
