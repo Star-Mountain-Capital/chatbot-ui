@@ -3,16 +3,14 @@ import { LoadingBanner } from "./components/LoadingBanner";
 import { IframeGuard } from "./components/IframeGuard";
 import { AppSidebar } from "./components/AppSidebar";
 import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
-import { isDevelopmentMode, SECURITY_CONFIG } from "./config/security";
+import { SECURITY_CONFIG } from "./config/security";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "@/store";
 import { useWsClient } from "@/hooks/useWsClient";
 import { useEffect } from "react";
 
 function App() {
-  const serverUrl = isDevelopmentMode()
-    ? "ws://172.173.148.66:8000/ws"
-    : "wss://chatbot.smc.soallabs.com/ws";
+  const serverUrl = import.meta.env.VITE_WS_URL || "ws://172.173.148.66:8000/ws"
 
   // Get chat state from store
   const {

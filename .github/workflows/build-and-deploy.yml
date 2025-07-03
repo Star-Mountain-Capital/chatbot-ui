@@ -3,7 +3,8 @@ name: Build and Deploy to Azure Blob Storage
 on:
   push:
     branches:
-      - joseph/deployment
+      - joseph/langgraph
+      - main
 
 jobs:
   build-and-deploy:
@@ -21,12 +22,24 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Create .env file
+        run: |
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "VITE_WS_URL=${{ secrets.VITE_WS_URL }}" >> .env
+          echo "VITE_ENV=${{ vars.VITE_ENV }}" >> .env
+          # Add other variables as needed
+
       - name: azure-cli login
         run: |
           az login --service-principal --username ${{ vars.AZURE_CLIENT_ID }} --password ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ vars.AZURE_TENANT_ID }}
 
       - name: Build the project
         run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
+          VITE_ENV: ${{ secrets.VITE_ENV }}
+          # Add other environment variables as needed
 
       - name: Upload build to Azure Blob Storage
         run: |

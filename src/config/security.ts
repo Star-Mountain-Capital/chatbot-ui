@@ -1,7 +1,6 @@
 export const SECURITY_CONFIG = {
   // The only domain allowed to embed this app in an iframe
-  ALLOWED_IFRAME_DOMAIN: "https://retool.starmountaincapital.com",
-
+  ALLOWED_IFRAME_DOMAIN: import.meta.env.VITE_ALLOWED_IFRAME_DOMAIN || "https://retool.starmountaincapital.com",
 } as const;
 
 // Helper function to check if a domain is allowed

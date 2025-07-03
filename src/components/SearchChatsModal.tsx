@@ -33,7 +33,8 @@ export function SearchChatsModal({
 
       setIsSearching(true);
       try {
-        const response = await fetch('http://172.173.148.66:8000/search/chats', {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://172.173.148.66:8000';
+        const response = await fetch(`${apiBaseUrl}/search/chats`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -1,4 +1,4 @@
-import { Status } from "./client";
+import { Status } from "@/store/types";
 
 export interface WSClientOptions {
   serverUrl: string;

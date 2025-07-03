@@ -1,5 +1,4 @@
 import { ChatMessageProps, MessageRole } from "@/components/ChatMessage";
-import { Status } from "@/lib/client";
 import { BusinessEntitiesSlice } from "./slices/businessEntitiesSlice";
 
 export interface Filter {
@@ -11,6 +10,8 @@ export interface Filter {
   table: string;
   type: string;
 }
+
+export type Status = "connected" | "disconnected" | "error";
 
 export interface SelectedItem {
   id: string;

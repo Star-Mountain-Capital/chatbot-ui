@@ -47,42 +47,38 @@ export const createBusinessEntitiesSlice: StateCreator<
 
   setBusinessEntities: (entities) => set({ businessEntities: entities }),
   setSelectedItems: (selectedItems) => set({ selectedItems }),
-  
-  addSelectedItem: (item) => set((state) => ({ 
-    selectedItems: [...state.selectedItems, item] 
-  })),
-  
-  removeSelectedItem: (itemId) => set((state) => ({
-    selectedItems: state.selectedItems.filter(item => item.id !== itemId)
-  })),
-  
-  toggleSelectedItem: (itemName, type) => {
-    const { selectedItems } = get();
-    const itemId = `${type}-${itemName}`;
-    const existingIndex = selectedItems.findIndex(item => item.id === itemId);
-    
-    if (existingIndex >= 0) {
-      // Remove item if already selected
-      set((state) => ({
-        selectedItems: state.selectedItems.filter((_, index) => index !== existingIndex)
-      }));
-    } else {
-      // Add item if not selected
-      set((state) => ({
-        selectedItems: [...state.selectedItems, { id: itemId, name: itemName, type }]
-      }));
+  addSelectedItem: (item) => {
+    const currentItems = get().selectedItems;
+    if (!currentItems.find(existing => existing.id === item.id)) {
+      set({ selectedItems: [...currentItems, item] });
     }
   },
-  
+  removeSelectedItem: (itemId) => {
+    const currentItems = get().selectedItems;
+    set({ selectedItems: currentItems.filter(item => item.id !== itemId) });
+  },
+  toggleSelectedItem: (itemName, type) => {
+    const currentItems = get().selectedItems;
+    const itemId = `${itemName}-${type}`;
+    const existingIndex = currentItems.findIndex(item => item.id === itemId);
+    
+    if (existingIndex >= 0) {
+      // Remove if exists
+      set({ selectedItems: currentItems.filter((_, index) => index !== existingIndex) });
+    } else {
+      // Add if doesn't exist
+      set({ selectedItems: [...currentItems, { id: itemId, name: itemName, type }] });
+    }
+  },
   clearSelectedItems: () => set({ selectedItems: [] }),
-  
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
   fetchBusinessEntities: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('http://172.173.148.66:8000/business-entities');
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://172.173.148.66:8000';
+      const response = await fetch(`${apiBaseUrl}/business-entities`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
