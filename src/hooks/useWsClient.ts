@@ -310,7 +310,7 @@ export function useWsClient({
    * Send filter response to the server.
    */
   const sendFilterResponse = useCallback(
-    (messageId: string, filterValues: Record<string, string>): void => {
+    (filterValues: Record<string, string>): void => {
       const client = clientRef.current;
       if (!client) throw new Error("WebSocket client not connected");
 

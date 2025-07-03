@@ -45,11 +45,10 @@ function App() {
   };
 
   const handleSendFilterResponse = (
-    messageId: string,
     filterValues: Record<string, string>
   ) => {
     try {
-      sendFilterResponse(messageId, filterValues);
+      sendFilterResponse(filterValues);
     } catch (error) {
       console.error("Failed to send filter response:", error);
     }

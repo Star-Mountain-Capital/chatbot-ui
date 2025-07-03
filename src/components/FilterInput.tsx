@@ -23,7 +23,7 @@ import { format } from "date-fns";
 interface FilterInputProps {
   filters: Filter[];
   messageId: string;
-  onSubmit: (messageId: string, filterValues: Record<string, string>) => void;
+  onSubmit: (filterValues: Record<string, string>) => void;
   onClose?: () => void;
 }
 
@@ -182,7 +182,6 @@ type FilterMappingKey = keyof typeof FILTER_MAPPINGS;
 
 export function FilterInput({
   filters,
-  messageId,
   onSubmit,
 }: FilterInputProps) {
   const {businessEntities, selectedItems} = useStore();
@@ -284,7 +283,7 @@ console.log(filters)
     
     // Wait for animation to complete before submitting
     setTimeout(() => {
-      onSubmit(messageId, filterValues);
+      onSubmit(filterValues);
     }, 300);
   };
 

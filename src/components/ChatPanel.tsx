@@ -34,7 +34,7 @@ function CustomTooltipContent({
 interface ChatPanelProps {
   onSendMessage: (message: string) => void;
   onCancelRequest?: () => void;
-  onSendFilterResponse?: (messageId: string, filterValues: Record<string, string>) => void;
+  onSendFilterResponse?: (filterValues: Record<string, string>) => void;
   messages: ChatMessageProps[];
   connectionStatus: string;
   progressMap?: Record<string, string[]>;
