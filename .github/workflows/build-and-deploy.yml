@@ -3,7 +3,7 @@ name: Build and Deploy to Azure Blob Storage
 on:
   push:
     branches:
-      - joseph/langgraph
+      - joseph/deployment
       - main
 
 jobs:
