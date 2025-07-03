@@ -17,14 +17,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' 
+          node-version: "20"
 
       - name: Install dependencies
         run: npm i
 
       - name: Create .env file
         run: |
-          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" >> .env
           echo "VITE_WS_URL=${{ secrets.VITE_WS_URL }}" >> .env
           echo "VITE_ENV=${{ vars.VITE_ENV }}" >> .env
           # Add other variables as needed
@@ -36,7 +36,7 @@ jobs:
       - name: Build the project
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
           VITE_ENV: ${{ secrets.VITE_ENV }}
           # Add other environment variables as needed
@@ -49,4 +49,3 @@ jobs:
             --source ./dist \
             --auth-mode login \
             --overwrite
-
