@@ -3,7 +3,7 @@ import { LoadingBanner } from "./components/LoadingBanner";
 import { IframeGuard } from "./components/IframeGuard";
 import { AppSidebar } from "./components/AppSidebar";
 import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
-import { SECURITY_CONFIG } from "./config/security";
+import { SECURITY_CONFIG, getUserIdFromUrl } from "./config/security";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "@/store";
 import { useWsClient } from "@/hooks/useWsClient";
@@ -27,6 +27,21 @@ function App() {
       serverUrl,
       autoConnect: true,
     });
+
+  // Validate userId from URL when not in dev mode
+  useEffect(() => {
+    try {
+      const userId = getUserIdFromUrl();
+      if (userId) {
+        console.log('User ID from URL:', userId);
+        // You can store this userId in your store or use it as needed
+      }
+    } catch (error) {
+      console.error('Error validating userId:', error);
+      // You might want to show an error message to the user
+      // or redirect them to an error page
+    }
+  }, []);
 
   // Fetch business entities on app load
   useEffect(() => {

@@ -14,4 +14,23 @@ export function isAllowedDomain(domain: string): boolean {
 // Helper function to check if we're in development mode
 export function isDevelopmentMode(): boolean {
   return import.meta.env.VITE_ENV === 'dev';
+}
+
+// Helper function to get and validate userId from URL
+export function getUserIdFromUrl(): string | null {
+  // If in development mode, return null (no validation required)
+  if (isDevelopmentMode()) {
+    return null;
+  }
+
+  // Get userId from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const userId = urlParams.get('userId');
+
+  // If not in dev mode and userId is not provided, throw an error
+  if (!userId) {
+    throw new Error('userId parameter is required in production mode');
+  }
+
+  return userId;
 } 
