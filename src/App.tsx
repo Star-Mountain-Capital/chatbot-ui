@@ -7,7 +7,6 @@ import { isDevelopmentMode, SECURITY_CONFIG } from "./config/security";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "@/store";
 import { useWsClient } from "@/hooks/useWsClient";
-import { useEffect } from "react";
 
 function App() {
   const serverUrl = isDevelopmentMode()
@@ -15,26 +14,24 @@ function App() {
     : "wss://chatbot.smc.soallabs.com/ws";
 
   // Get chat state from store
-  const { messages, status, pending, progressMap, addMessage, setSessionId, setUserId } = useStore();
+  const {
+    messages,
+    status,
+    pending,
+    progressMap,
+    addMessage,
+  } = useStore();
 
-  const { isConnecting, sendQuery, cancelRequest, sendFilterResponse } = useWsClient({
-    serverUrl,
-    autoConnect: true,
-  });
-
-  // Initialize sessionId and userId on component mount
-  useEffect(() => {
-    const sessionId = uuidv4();
-    const userId = uuidv4();
-    
-    setSessionId(sessionId);
-    setUserId(userId);
-    
-  }, [setSessionId, setUserId]);
+  const { isConnecting, sendQuery, cancelRequest, sendFilterResponse, getChatHistory } =
+    useWsClient({
+      serverUrl,
+      autoConnect: true,
+    });
 
   const handleSendMessage = async (message: string) => {
     const messageId = uuidv4();
     addMessage("user", message, messageId);
+
     try {
       await sendQuery(message, messageId);
     } catch (error) {
@@ -42,7 +39,10 @@ function App() {
     }
   };
 
-  const handleSendFilterResponse = (messageId: string, filterValues: Record<string, string>) => {
+  const handleSendFilterResponse = (
+    messageId: string,
+    filterValues: Record<string, string>
+  ) => {
     try {
       sendFilterResponse(messageId, filterValues);
     } catch (error) {
@@ -56,7 +56,7 @@ function App() {
         <div className="flex h-screen bg-background text-foreground w-full">
           <LoadingBanner isVisible={isConnecting} />
 
-          <AppSidebar />
+          <AppSidebar onGetChatHistory={getChatHistory} />
 
           <SidebarInset>
             <ChatPanel
@@ -66,7 +66,7 @@ function App() {
               progressMap={progressMap}
               onCancelRequest={cancelRequest}
               onSendMessage={handleSendMessage}
-              onSendFilterResponse={handleSendFilterResponse}
+              onSendFilterResponse={handleSendFilterResponse} 
             />
           </SidebarInset>
         </div>

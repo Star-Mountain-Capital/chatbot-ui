@@ -83,7 +83,7 @@ export function ChatMessage({
           {content}
         </ReactMarkdown>
       </div>
-      {progressSteps?.length > 0 && (
+      {role === "user" && progressSteps?.length > 0 && (
         <Accordion
           type="single"
           collapsible

@@ -11,6 +11,40 @@ export interface Filter {
   type: string;
 }
 
+export interface Session {
+  session_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  metadata: {
+    query_type: string;
+    session_id: string;
+    workflow_type: string;
+  };
+}
+
+export interface SessionsData {
+  success: boolean;
+  user_id: string;
+  connection_id: string;
+  sessions: Session[];
+  session_count: number;
+  session_summaries: unknown[];
+  active_connections: unknown[];
+  sorted_by: string;
+  sort_order: string;
+  connection_timestamp: number;
+  sort_preferences: {
+    sort_by: string;
+    sort_order: string;
+  };
+  available_sort_options: {
+    fields: string[];
+    orders: string[];
+  };
+}
+
 export interface ChatState {
   pending: boolean;
   status: Status;
@@ -40,6 +74,18 @@ export interface ChatActions {
   setUserId: (userId: string) => void;
 }
 
-export type ChatSlice = ChatState & ChatActions;
+export interface SessionState {
+  sessions: Session[];
+  sessionsData: SessionsData | null;
+}
 
-export type StoreSlice = ChatSlice;
+export interface SessionActions {
+  setSessions: (sessions: Session[]) => void;
+  setSessionsData: (sessionsData: SessionsData) => void;
+  addSession: (session: Session) => void;
+}
+
+export type ChatSlice = ChatState & ChatActions;
+export type SessionSlice = SessionState & SessionActions;
+
+export type StoreSlice = ChatSlice & SessionSlice;

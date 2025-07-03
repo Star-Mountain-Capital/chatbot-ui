@@ -1,5 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/theme-provider";
+import { useStore } from "@/store";
 import {
   Sidebar,
   SidebarContent,
@@ -16,21 +17,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Moon, Sun, Plus, Search, MessageSquare } from "lucide-react";
 
-// Dummy chat history data
-const dummyChatHistory = [
-  { id: "1", title: "How to implement authentication" },
-  { id: "2", title: "Database optimization strategies" },
-  { id: "3", title: "React component best practices" },
-  { id: "4", title: "API design patterns" },
-  { id: "5", title: "Testing strategies for web apps" },
-  { id: "6", title: "Deployment pipeline setup" },
-  { id: "7", title: "Performance optimization tips" },
-  { id: "8", title: "Security best practices" },
-];
+interface AppSidebarProps {
+  onGetChatHistory: (sessionId: string) => void;
+}
 
-export function AppSidebar() {
+export function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
   const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
+  const { sessions, setSessionId } = useStore();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -46,9 +40,10 @@ export function AppSidebar() {
     console.log("Search chats clicked");
   };
 
-  const handleChatSelect = (chatId: string) => {
-    // TODO: Implement chat selection functionality
-    console.log("Chat selected:", chatId);
+  const handleChatSelect = (sessionId: string) => {
+    console.log("Session selected:", sessionId);
+    setSessionId(sessionId);
+    onGetChatHistory(sessionId);
   };
 
   return (
@@ -101,15 +96,15 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {state === "expanded" &&
-                dummyChatHistory.map((chat) => (
-                  <SidebarMenuItem key={chat.id}>
+                sessions.map((session) => (
+                  <SidebarMenuItem key={session.session_id}>
                     <SidebarMenuButton
-                      onClick={() => handleChatSelect(chat.id)}
+                      onClick={() => handleChatSelect(session.session_id)}
                       className="w-full justify-start"
-                      tooltip={chat.title}
+                      tooltip={session.title}
                     >
                       <MessageSquare className="h-4 w-4" />
-                      <span className="ml-2 truncate">{chat.title}</span>
+                      <span className="ml-2 truncate">{session.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
