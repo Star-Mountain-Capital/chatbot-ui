@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Moon, Sun, Plus, Search, MessageSquare } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 interface AppSidebarProps {
   onGetChatHistory: (sessionId: string) => void;
@@ -24,15 +25,17 @@ interface AppSidebarProps {
 export function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
   const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
-  const { sessions, setSessionId } = useStore();
+  const { sessions, setSessionId, clearMessages } = useStore();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
   const handleNewChat = () => {
-    // TODO: Implement new chat functionality
-    console.log("New chat clicked");
+    // Clear messages and create new session
+    clearMessages();
+    const newSessionId = uuidv4();
+    setSessionId(newSessionId);
   };
 
   const handleSearchChats = () => {
