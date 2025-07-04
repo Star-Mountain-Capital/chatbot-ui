@@ -14,9 +14,26 @@ export interface WSClientOptions {
 export class WsClient {
   private socket: WebSocket | null = null;
   private options: WSClientOptions;
+  private pingInterval: NodeJS.Timeout | null = null;
 
   constructor(options: WSClientOptions) {
     this.options = options;
+  }
+
+  private startPing(): void {
+    // Send ping every 30 seconds to keep connection alive
+    this.pingInterval = setInterval(() => {
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify({ type: "ping" }));
+      }
+    }, 30000);
+  }
+
+  private stopPing(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
   }
 
   public async connect(): Promise<void> {
@@ -26,16 +43,19 @@ export class WsClient {
 
         this.socket.addEventListener("open", () => {
           this.options.onStatusChange?.("connected");
+          this.startPing();
           resolve();
         });
 
         this.socket.addEventListener("error", (evt) => {
           console.error("WebSocket error", evt);
+          this.stopPing();
           this.options.onStatusChange?.("error");
           reject(evt);
         });
 
         this.socket.addEventListener("close", () => {
+          this.stopPing();
           this.options.onStatusChange?.("disconnected");
         });
 
@@ -54,6 +74,7 @@ export class WsClient {
   }
 
   public async disconnect(): Promise<void> {
+    this.stopPing();
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.close();
     }

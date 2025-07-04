@@ -11,6 +11,7 @@ export interface ChatMessageProps {
   messageId: string;
   thinkingEndTime?: Date;
   thinkingStartTime?: Date;
+  pending?: boolean;
 }
 
 import ReactMarkdown from "react-markdown";
@@ -33,8 +34,9 @@ export function ChatMessage({
   timestamp,
   progressSteps,
   messageId,
+  pending = false,
 }: ChatMessageProps) {
-  const { pending, getThinkingTime } = useStore();
+  const { getThinkingTime } = useStore();
   const [isOpen, setIsOpen] = useState(true);
 
   // Close accordion when pending becomes false

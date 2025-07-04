@@ -78,8 +78,12 @@ export interface ChatActions {
   updateMessageContent: (messageId: string, content: string) => void;
   getThinkingTime: (messageId: string) => number;
   setFilters: (messageId: string, filters: Filter[]) => void;
+  clearFilters: () => void;
   setSessionId: (sessionId: string) => void;
   setUserId: (userId: string) => void;
+  setMessagePending: (messageId: string, pending: boolean) => void;
+  completeQuery: (messageId: string) => void;
+  requireFilters: (messageId: string) => void;
 }
 
 export interface SessionState {

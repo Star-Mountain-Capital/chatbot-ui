@@ -121,7 +121,7 @@ export function ChatPanel({
         <div className="w-[50%]">
           {messages.map((msg, index) => (
             <ChatMessage
-              key={index}
+              key={msg.messageId}
               loading={hasActiveRequest && index == messages.length - 1}
               {...msg}
               progressSteps={progressMap[msg.messageId]}

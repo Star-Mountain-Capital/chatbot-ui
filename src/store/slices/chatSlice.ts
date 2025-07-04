@@ -46,6 +46,7 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
           messageId,
           hasActiveRequest: role === "tool",
           thinkingStartTime: role === "tool" ? new Date() : undefined,
+          pending: role === "user" ? true : false,
         },
       ],
     })),
@@ -93,9 +94,35 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
       },
     })),
 
+  clearFilters: () =>
+    set(() => {
+      return { filtersMap: {} };
+    }),
+
   setSessionId: (sessionId) => set({ sessionId }),
   
   setUserId: (userId) => set({ userId }),
+
+  setMessagePending: (messageId, pending) =>
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg.messageId === messageId ? { ...msg, pending } : msg
+      ),
+    })),
+
+  completeQuery: (messageId) =>
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg.messageId === messageId ? { ...msg, pending: false } : msg
+      ),
+    })),
+
+  requireFilters: (messageId) =>
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg.messageId === messageId ? { ...msg, pending: false } : msg
+      ),
+    })),
 
   getThinkingTime: (messageId) => {
     const { messages } = get();

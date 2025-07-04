@@ -184,8 +184,7 @@ export function FilterInput({
   filters,
   onSubmit,
 }: FilterInputProps) {
-  const {businessEntities, selectedItems} = useStore();
-  console.log(selectedItems)
+  const {businessEntities, selectedItems, clearFilters} = useStore();
   
   // Initialize filter values with defaults from selectedItems
   const getInitialFilterValues = () => {
@@ -208,7 +207,6 @@ export function FilterInput({
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-console.log(filters)
 
   // Helper function to get options for mapped filters
   const getMappedFilterOptions = (filterName: string): string[] => {
@@ -280,6 +278,9 @@ console.log(filters)
 
     // Start closing animation
     setIsVisible(false);
+    
+    // Clear the filters from the store to remove the filter UI entirely
+    clearFilters();
     
     // Wait for animation to complete before submitting
     setTimeout(() => {

@@ -82,6 +82,8 @@ export function useWsClient({
     clearMessages,
     setProgressMap,
     addSession,
+    completeQuery,
+    requireFilters,
   } = useStore();
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -207,8 +209,10 @@ export function useWsClient({
               }
               if (step === "waiting_filters" && filters) {
                 setFilters(message_id, filters);
+                requireFilters(message_id);
               } else if (step === "complete") {
                 setPending(false);
+                completeQuery(message_id);
               }
               break;
             }
@@ -218,6 +222,7 @@ export function useWsClient({
               }
               setPending(false);
               setThinkingEndTime(message_id, new Date());
+              completeQuery(message_id);
               break;
             }
             default:
@@ -245,6 +250,8 @@ export function useWsClient({
       setFilters,
       setSessionsData,
       addSession,
+      completeQuery,
+      requireFilters,
     ]
   );
 
