@@ -1,0 +1,51 @@
+name: Build and Deploy to Azure Blob Storage
+
+on:
+  push:
+    branches:
+      - joseph/deployment
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Create .env file
+        run: |
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" >> .env
+          echo "VITE_WS_URL=${{ secrets.VITE_WS_URL }}" >> .env
+          echo "VITE_ENV=${{ vars.VITE_ENV }}" >> .env
+          # Add other variables as needed
+
+      - name: azure-cli login
+        run: |
+          az login --service-principal --username ${{ vars.AZURE_CLIENT_ID }} --password ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ vars.AZURE_TENANT_ID }}
+
+      - name: Build the project
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
+          VITE_ENV: ${{ secrets.VITE_ENV }}
+          # Add other environment variables as needed
+
+      - name: Upload build to Azure Blob Storage
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source ./dist \
+            --auth-mode login \
+            --overwrite
