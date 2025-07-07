@@ -1,13 +1,13 @@
+import React, { useEffect } from "react";
 import { ChatMessage, ChatMessageProps } from "@/components/ChatMessage";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
 import { Send, XCircle, Info } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ContextMenu } from "./ContextMenu";
 import { FilterInput } from "./FilterInput";
-import { useStore } from "@/store";
+import { useChatInput } from "@/hooks/useChatInput";
 
 // Custom tooltip content with improved arrow styling
 function CustomTooltipContent({
@@ -42,7 +42,7 @@ interface ChatPanelProps {
   hasActiveRequest?: boolean;
 }
 
-export function ChatPanel({
+export const ChatPanel = React.memo(function ChatPanel({
   onSendMessage,
   onCancelRequest,
   onSendFilterResponse,
@@ -51,29 +51,21 @@ export function ChatPanel({
   progressMap = {},
   hasActiveRequest = false,
 }: ChatPanelProps) {
-  const [inputValue, setInputValue] = useState("");
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Get filters from store
-  const { filtersMap } = useStore();
-
-  // Find the most recent message that has filters and is still active
-  const activeFilters = (() => {
-    // Get the most recent message with filters
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const message = messages[i];
-      if (filtersMap[message.messageId]) {
-        return {
-          messageId: message.messageId,
-          filters: filtersMap[message.messageId]
-        };
-      }
-    }
-    return null;
-  })();
+  const {
+    inputValue,
+    setInputValue,
+    showTooltip,
+    textareaRef,
+    messagesEndRef,
+    activeFilters,
+    handleSubmit,
+    setIsHovering,
+  } = useChatInput({
+    messages,
+    onSendMessage,
+    connectionStatus,
+    hasActiveRequest,
+  });
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -87,33 +79,6 @@ export function ChatPanel({
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [inputValue]);
-
-  // Tooltip auto-show/hide logic
-  useEffect(() => {
-    // Show tooltip on component mount
-    setShowTooltip(true);
-
-    // Auto-hide after 5 seconds unless hovering
-    const timer = setTimeout(() => {
-      if (!isHovering) {
-        setShowTooltip(false);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [isHovering]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      inputValue.trim() &&
-      connectionStatus === "connected" &&
-      !hasActiveRequest
-    ) {
-      onSendMessage(inputValue);
-      setInputValue("");
-    }
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -256,4 +221,4 @@ export function ChatPanel({
       </div>
     </div>
   );
-}
+});

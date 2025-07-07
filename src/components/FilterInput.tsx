@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Filter } from "@/store/types";
 import { useStore } from "@/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -180,7 +180,7 @@ const FILTER_MAPPINGS = {
 
 type FilterMappingKey = keyof typeof FILTER_MAPPINGS;
 
-export function FilterInput({
+export const FilterInput = React.memo(function FilterInput({
   filters,
   onSubmit,
 }: FilterInputProps) {
@@ -397,4 +397,4 @@ export function FilterInput({
       </div>
     </div>
   );
-}
+});

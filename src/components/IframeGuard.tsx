@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { isAllowedDomain, isDevelopmentMode } from "@/config/security";
 
 interface IframeGuardProps {
@@ -6,7 +6,7 @@ interface IframeGuardProps {
   allowedDomain: string;
 }
 
-export function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
+export const IframeGuard = React.memo(function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
   const [isAllowed, setIsAllowed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -97,4 +97,4 @@ export function IframeGuard({ children, allowedDomain }: IframeGuardProps) {
   }
 
   return <>{children}</>;
-} 
+}); 

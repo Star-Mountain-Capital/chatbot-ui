@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useStore } from "@/store";
 import { WsClient } from "@/lib/wsClient";
 import { Filter, SessionsData } from "@/store/types";
 import { v4 as uuidv4 } from "uuid";
+import { useStore } from "@/store";
 
 interface UseWsClientOptions {
   serverUrl: string;
@@ -77,7 +77,6 @@ export function useWsClient({
     sessionId,
     userId,
     setSessionId,
-    setUserId,
     setSessionsData,
     clearMessages,
     setProgressMap,
@@ -258,10 +257,8 @@ export function useWsClient({
   // Auto connect
   useEffect(() => {
     const sessionId = uuidv4();
-    const userId = "f718f13e-6446-4d75-a830-d6df70d486ab";
 
     setSessionId(sessionId);
-    setUserId(userId);
     if (autoConnect) {
       void connect(sessionId, userId);
     }
@@ -270,7 +267,7 @@ export function useWsClient({
       clientRef.current?.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoConnect, connect, setSessionId, setUserId]);
+  }, [autoConnect, connect, setSessionId]);
 
   /**
    * Send a user query to the server.

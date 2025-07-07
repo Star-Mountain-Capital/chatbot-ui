@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 export const SECURITY_CONFIG = {
   // The only domain allowed to embed this app in an iframe
   ALLOWED_IFRAME_DOMAIN: import.meta.env.VITE_ALLOWED_IFRAME_DOMAIN || "https://retool.starmountaincapital.com",
@@ -33,4 +35,9 @@ export function getUserIdFromUrl(): string | null {
   }
 
   return userId;
+}
+
+// Helper function to get a userId in development mode
+export function getDevUserId(): string {
+  return import.meta.env.VITE_DEV_USER_ID || uuidv4();
 } 

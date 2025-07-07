@@ -1,4 +1,5 @@
 import { StateCreator } from "zustand";
+import { fetchBusinessEntitiesFromApi } from "@/services/businessEntitiesService";
 
 export interface BusinessEntity {
   id: string;
@@ -77,12 +78,7 @@ export const createBusinessEntitiesSlice: StateCreator<
   fetchBusinessEntities: async () => {
     set({ isLoading: true, error: null });
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://172.173.148.66:8000';
-      const response = await fetch(`${apiBaseUrl}/business-entities`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const entities = await response.json();
+      const entities = await fetchBusinessEntitiesFromApi();
       set({ businessEntities: entities, isLoading: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch business entities';

@@ -14,11 +14,11 @@ export interface ChatMessageProps {
   pending?: boolean;
 }
 
+import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
-import { useState, useEffect } from "react";
 
 import {
   Accordion,
@@ -28,7 +28,7 @@ import {
 } from "./ui/accordion";
 import { useStore } from "@/store";
 
-export function ChatMessage({
+export const ChatMessage = React.memo(function ChatMessage({
   content,
   role,
   timestamp,
@@ -171,4 +171,4 @@ export function ChatMessage({
       )}
     </div>
   );
-}
+});

@@ -1,4 +1,3 @@
-import { Plus, X, Search } from "lucide-react";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   DropdownMenu,
@@ -14,8 +13,9 @@ import {
 import { Input } from "@/components/ui/input";
 import useClickOutside from "@/hooks/useClickOutside";
 import { useStore } from "@/store";
+import { Plus, X, Search } from "lucide-react";
 
-export const ContextMenu: React.FC = () => {
+export const ContextMenu: React.FC = React.memo(() => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
   const dropDownRef = useRef<HTMLDivElement>(null);
@@ -240,4 +240,4 @@ export const ContextMenu: React.FC = () => {
       ))}
     </div>
   );
-};
+});
