@@ -31,7 +31,6 @@ import { useStore } from "@/store";
 export const ChatMessage = React.memo(function ChatMessage({
   content,
   role,
-  timestamp,
   progressSteps,
   messageId,
   pending = false,
@@ -39,7 +38,6 @@ export const ChatMessage = React.memo(function ChatMessage({
   const { getThinkingTime } = useStore();
   const [isOpen, setIsOpen] = useState(true);
 
-  // Close accordion when pending becomes false
   useEffect(() => {
     if (!pending) {
       setIsOpen(false);
@@ -47,22 +45,15 @@ export const ChatMessage = React.memo(function ChatMessage({
   }, [pending]);
 
   return (
-    <div>
+    <div className={cn("flex flex-col w-full mb-6", role === "user" ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "py-3 px-4 rounded-lg mb-3 max-w-[100%]",
+          "py-3 px-5 rounded-2xl max-w-[80%] shadow-md transition-all",
           role === "user"
-            ? "bg-primary text-primary-foreground rounded-tr-none"
-            : "bg-muted text-foreground rounded-tl-none"
+            ? "bg-primary text-primary-foreground rounded-tr-md rounded-br-2xl rounded-tl-2xl ml-auto"
+            : "bg-none text-foreground rounded-tl-md rounded-bl-2xl rounded-tr-2xl mr-auto"
         )}
       >
-        {timestamp && (
-          <div className="flex items-center mb-1">
-            <span className="text-xs opacity-70 ml-auto">
-              {timestamp.toLocaleTimeString()}
-            </span>
-          </div>
-        )}
 
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
