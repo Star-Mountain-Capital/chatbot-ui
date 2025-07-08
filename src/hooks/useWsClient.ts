@@ -187,7 +187,11 @@ export function useWsClient({
           switch (type) {
             case "progress": {
               // Handle title_generated update_type
-              if (data.update_type === "title_generated" && data.data?.session_id && data.data?.title) {
+              if (
+                data.update_type === "title_generated" &&
+                data.data?.session_id &&
+                data.data?.title
+              ) {
                 const newSession = {
                   session_id: data.data.session_id,
                   title: data.data.title,
@@ -202,7 +206,7 @@ export function useWsClient({
                 };
                 addSession(newSession);
               }
-              
+
               if (message) {
                 updateProgressMap(message_id, message);
               }
@@ -256,6 +260,7 @@ export function useWsClient({
 
   // Auto connect
   useEffect(() => {
+    if (!userId) return;
     const sessionId = uuidv4();
 
     setSessionId(sessionId);
@@ -266,8 +271,7 @@ export function useWsClient({
     return () => {
       clientRef.current?.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoConnect, connect, setSessionId]);
+  }, [autoConnect, connect, setSessionId, userId]);
 
   /**
    * Send a user query to the server.
