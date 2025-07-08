@@ -5,6 +5,7 @@ const configSchema = z.object({
   VITE_API_BASE_URL: z.string().url(),
   VITE_WS_URL: z.string().url(),
   VITE_ALLOWED_IFRAME_DOMAIN: z.string().url(),
+  VITE_ENV: z.enum(["dev", "production"]).optional().default("production"),
   VITE_DEV_USER_ID: z.string().optional(),
 });
 
