@@ -1,11 +1,10 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Define schema for required environment variables
 const configSchema = z.object({
   VITE_API_BASE_URL: z.string().url(),
   VITE_WS_URL: z.string().url(),
   VITE_ALLOWED_IFRAME_DOMAIN: z.string().url(),
-  VITE_ENV: z.enum(['dev', 'production']),
   VITE_DEV_USER_ID: z.string().optional(),
 });
 
@@ -22,8 +21,8 @@ const rawConfig = {
 const parsed = configSchema.safeParse(rawConfig);
 if (!parsed.success) {
   // You can customize this error handling as needed
-  console.error('Invalid environment configuration:', parsed.error.format());
-  throw new Error('Invalid environment configuration');
+  console.error("Invalid environment configuration:", parsed.error.format());
+  throw new Error("Invalid environment configuration");
 }
 
-export const config = parsed.data; 
+export const config = parsed.data;
