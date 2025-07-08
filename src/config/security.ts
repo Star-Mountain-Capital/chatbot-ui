@@ -1,6 +1,9 @@
+import { v4 as uuidv4 } from "uuid";
+import { config } from "./index";
+
 export const SECURITY_CONFIG = {
   // The only domain allowed to embed this app in an iframe
-  ALLOWED_IFRAME_DOMAIN: import.meta.env.VITE_ALLOWED_IFRAME_DOMAIN || "https://retool.starmountaincapital.com",
+  ALLOWED_IFRAME_DOMAIN: config.VITE_ALLOWED_IFRAME_DOMAIN,
 } as const;
 
 // Helper function to check if a domain is allowed
@@ -13,7 +16,7 @@ export function isAllowedDomain(domain: string): boolean {
 
 // Helper function to check if we're in development mode
 export function isDevelopmentMode(): boolean {
-  return import.meta.env.VITE_ENV === 'dev';
+  return config.VITE_ENV === 'dev';
 }
 
 // Helper function to get and validate userId from URL
@@ -33,4 +36,9 @@ export function getUserIdFromUrl(): string | null {
   }
 
   return userId;
+}
+
+// Helper function to get a userId in development mode
+export function getDevUserId(): string {
+  return config.VITE_DEV_USER_ID || uuidv4();
 } 

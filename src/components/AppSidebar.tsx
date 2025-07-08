@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/theme-provider";
 import { useStore } from "@/store";
@@ -18,13 +19,12 @@ import {
 import { Moon, Sun, Plus, Search, MessageSquare } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { SearchChatsModal } from "./SearchChatsModal";
-import { useState } from "react";
 
 interface AppSidebarProps {
   onGetChatHistory: (sessionId: string) => void;
 }
 
-export function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
+export const AppSidebar = React.memo(function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
   const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
   const { sessions, setSessionId, clearMessages } = useStore();
@@ -156,4 +156,4 @@ export function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
       />
     </>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, MessageSquare, Calendar, Clock, X } from "lucide-react";
@@ -13,7 +13,7 @@ interface SearchChatsModalProps {
   onSelectSession: (sessionId: string) => void;
 }
 
-export function SearchChatsModal({
+export const SearchChatsModal = React.memo(function SearchChatsModal({
   open,
   onOpenChange,
   onSelectSession,
@@ -179,4 +179,4 @@ export function SearchChatsModal({
       </DialogContent>
     </Dialog>
   );
-}
+});
