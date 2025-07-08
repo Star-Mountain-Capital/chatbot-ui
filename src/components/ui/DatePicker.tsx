@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -31,7 +35,9 @@ export function DatePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={`w-full justify-start text-left font-normal ${error ? "border-red-300 text-red-300" : ""} ${!value && "text-muted-foreground"}`}
+          className={`w-full justify-start text-left font-normal ${
+            error ? "border-red-300 text-red-300" : ""
+          } ${!value && "text-muted-foreground"}`}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {value ? format(selectedDate!, "PPP") : "Pick a date"}
@@ -47,4 +53,4 @@ export function DatePicker({
       </PopoverContent>
     </Popover>
   );
-} 
+}

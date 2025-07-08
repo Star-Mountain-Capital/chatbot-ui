@@ -59,7 +59,6 @@ type AddMessage = (role: MessageRole, content: string, messageId: string) => voi
 type SetProgressMap = (map: Record<string, string[]>) => void;
 type UpdateProgressMap = (messageId: string, message: string) => void;
 type SetPending = (pending: boolean) => void;
-type SetThinkingStartTime = (messageId: string) => void;
 type SetThinkingEndTime = (messageId: string, date: Date) => void;
 type SetFilters = (messageId: string, filters: Filter[]) => void;
 type SetSessionsData = (data: SessionsData) => void;
@@ -73,7 +72,6 @@ export class WebSocketMessageHandler {
   private setProgressMap: SetProgressMap;
   private updateProgressMap: UpdateProgressMap;
   private setPending: SetPending;
-  private setThinkingStartTime: SetThinkingStartTime;
   private setThinkingEndTime: SetThinkingEndTime;
   private setFilters: SetFilters;
   private setSessionsData: SetSessionsData;
@@ -87,7 +85,6 @@ export class WebSocketMessageHandler {
     setProgressMap,
     updateProgressMap,
     setPending,
-    setThinkingStartTime,
     setThinkingEndTime,
     setFilters,
     setSessionsData,
@@ -100,7 +97,6 @@ export class WebSocketMessageHandler {
     setProgressMap: SetProgressMap;
     updateProgressMap: UpdateProgressMap;
     setPending: SetPending;
-    setThinkingStartTime: SetThinkingStartTime;
     setThinkingEndTime: SetThinkingEndTime;
     setFilters: SetFilters;
     setSessionsData: SetSessionsData;
@@ -113,7 +109,6 @@ export class WebSocketMessageHandler {
     this.setProgressMap = setProgressMap;
     this.updateProgressMap = updateProgressMap;
     this.setPending = setPending;
-    this.setThinkingStartTime = setThinkingStartTime;
     this.setThinkingEndTime = setThinkingEndTime;
     this.setFilters = setFilters;
     this.setSessionsData = setSessionsData;

@@ -1,6 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Filter } from "@/store/types";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, X, Search } from "lucide-react";
@@ -19,9 +24,10 @@ export function SearchableEnumPicker({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredOptions = filter.enum_values?.filter(option =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredOptions =
+    filter.enum_values?.filter((option) =>
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   const handleSelect = (selectedValue: string) => {
     onChange(selectedValue);
@@ -40,7 +46,9 @@ export function SearchableEnumPicker({
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className={`w-full justify-between h-10 px-3 ${error ? "border-red-300 text-red-300" : ""}`}
+            className={`w-full justify-between h-10 px-3 ${
+              error ? "border-red-300 text-red-300" : ""
+            }`}
             type="button"
           >
             <span className="truncate">
@@ -50,7 +58,7 @@ export function SearchableEnumPicker({
               {value && (
                 <X
                   className="h-4 w-4 hover:bg-muted rounded p-0.5"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     handleClear();
                   }}
@@ -66,14 +74,14 @@ export function SearchableEnumPicker({
             <Input
               placeholder="Search options..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="h-8 text-sm"
               autoFocus
             />
           </div>
           <div className="max-h-40 overflow-y-auto">
             {filteredOptions.length > 0 ? (
-              filteredOptions.map(enumValue => (
+              filteredOptions.map((enumValue) => (
                 <DropdownMenuItem
                   key={enumValue}
                   onClick={() => handleSelect(enumValue)}
@@ -92,4 +100,4 @@ export function SearchableEnumPicker({
       </DropdownMenu>
     </div>
   );
-} 
+}
