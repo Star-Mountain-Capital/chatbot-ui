@@ -45,16 +45,20 @@ export const ChatMessage = React.memo(function ChatMessage({
   }, [pending]);
 
   return (
-    <div className={cn("flex flex-col w-full mb-6", role === "user" ? "justify-end" : "justify-start")}>
+    <div
+      className={cn(
+        "flex flex-col w-full mb-6",
+        role === "user" ? "justify-end" : "justify-start"
+      )}
+    >
       <div
         className={cn(
-          "py-3 px-5 rounded-2xl max-w-[80%] shadow-md transition-all",
+          "py-3 px-5 rounded-2xl max-w-[80%] transition-all",
           role === "user"
             ? "bg-primary text-primary-foreground rounded-tr-md rounded-br-2xl rounded-tl-2xl ml-auto"
             : "bg-none text-foreground rounded-tl-md rounded-bl-2xl rounded-tr-2xl mr-auto"
         )}
       >
-
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw, rehypeSanitize]}
@@ -83,10 +87,16 @@ export const ChatMessage = React.memo(function ChatMessage({
               <thead {...props} className="bg-muted/80 dark:bg-muted/60" />
             ),
             tbody: (props) => (
-              <tbody {...props} className="bg-background divide-y divide-border/50" />
+              <tbody
+                {...props}
+                className="bg-background divide-y divide-border/50"
+              />
             ),
             tr: (props) => (
-              <tr {...props} className="transition-colors hover:bg-muted/30 dark:hover:bg-muted/20" />
+              <tr
+                {...props}
+                className="transition-colors hover:bg-muted/30 dark:hover:bg-muted/20"
+              />
             ),
             th: (props) => (
               <th
