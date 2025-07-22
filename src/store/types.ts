@@ -2,13 +2,14 @@ import { ChatMessageProps, MessageRole } from "@/components/ChatMessage";
 import { BusinessEntitiesSlice } from "./slices/businessEntitiesSlice";
 
 export interface Filter {
-  column: string;
+  column?: string;
   enum_values?: string[];
   format?: string;
   is_required: boolean;
   name: string;
-  table: string;
+  table?: string;
   type: string;
+  available_options?: string[];
 }
 
 export type Status = "connected" | "disconnected" | "error";

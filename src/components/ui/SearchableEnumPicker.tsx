@@ -25,7 +25,7 @@ export function SearchableEnumPicker({
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredOptions =
-    filter.enum_values?.filter((option) =>
+    (filter.enum_values || filter.available_options)?.filter((option) =>
       option.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 

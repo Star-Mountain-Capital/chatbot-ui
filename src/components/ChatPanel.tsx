@@ -109,7 +109,7 @@ export const ChatPanel = React.memo(function ChatPanel({
                 onSubmit={onSendFilterResponse}
               />
             )}
-            
+
             <div className="absolute flex items-center gap-2 w-full p-2 z-50">
               <ContextMenu />
             </div>

@@ -148,7 +148,9 @@ export const FilterInput = React.memo(function FilterInput({
     const error = validationErrors[filter.name];
 
     const filterType = filter.type.toLowerCase();
-    const isEnum = filter.enum_values && filter.enum_values.length > 0;
+    const isEnum =
+      (filter.enum_values && filter.enum_values.length > 0) ||
+      (filter.available_options && filter.available_options?.length > 0);
     const isDate = filterType === "date" || filter.format === "date";
 
     // Check if this filter has a mapping to business entities data
