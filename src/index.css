@@ -205,3 +205,41 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
+
+/* Text wave animation - opacity gradient from left to right */
+@keyframes text-wave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-text-wave {
+  background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 25%, rgba(0,0,0,0.9) 50%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0.3) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: text-wave 4s linear infinite;
+}
+
+/* Theme-aware text wave animations */
+.animate-text-wave-light {
+  background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 25%, rgba(0,0,0,0.9) 50%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0.3) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: text-wave 4s linear infinite;
+}
+
+.animate-text-wave-dark {
+  background: linear-gradient(90deg, rgba(156,163,175,0.3) 0%, rgba(156,163,175,0.6) 25%, rgba(156,163,175,0.9) 50%, rgba(156,163,175,0.6) 75%, rgba(156,163,175,0.3) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: text-wave 4s linear infinite;
+}

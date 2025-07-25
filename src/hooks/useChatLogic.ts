@@ -2,14 +2,14 @@ import { useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "@/store";
 import { useWsClient } from "@/hooks/useWsClient";
-import { getUserIdFromUrl, isDevelopmentMode, getDevUserId } from "@/config/security";
+import {
+  getUserIdFromUrl,
+  isDevelopmentMode,
+  getDevUserId,
+} from "@/config/security";
 
 export function useChatLogic(serverUrl: string) {
-  const {
-    addMessage,
-    fetchBusinessEntities,
-    setUserId,
-  } = useStore();
+  const { addMessage, fetchBusinessEntities, setUserId } = useStore();
 
   const {
     isConnecting,
@@ -26,7 +26,7 @@ export function useChatLogic(serverUrl: string) {
   useEffect(() => {
     try {
       if (isDevelopmentMode()) {
-        setUserId(getDevUserId());
+        setUserId("b23461ed-b833-40c7-af8c-952e2ad06740");
       } else {
         const userId = getUserIdFromUrl();
         if (userId) {
@@ -34,7 +34,7 @@ export function useChatLogic(serverUrl: string) {
         }
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   }, [setUserId]);
 
@@ -43,23 +43,29 @@ export function useChatLogic(serverUrl: string) {
     fetchBusinessEntities();
   }, [fetchBusinessEntities]);
 
-  const handleSendMessage = useCallback(async (message: string) => {
-    const messageId = uuidv4();
-    addMessage("user", message, messageId);
-    try {
-      await sendQuery(message, messageId);
-    } catch (error) {
-      console.error(error);
-    }
-  }, [addMessage, sendQuery]);
+  const handleSendMessage = useCallback(
+    async (message: string) => {
+      const messageId = uuidv4();
+      addMessage("user", message, messageId);
+      try {
+        await sendQuery(message, messageId);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [addMessage, sendQuery]
+  );
 
-  const handleSendFilterResponse = useCallback((filterValues: Record<string, string>) => {
-    try {
-      sendFilterResponse(filterValues);
-    } catch (error) {
-      console.error("Failed to send filter response:", error);
-    }
-  }, [sendFilterResponse]);
+  const handleSendFilterResponse = useCallback(
+    (filterValues: Record<string, string>) => {
+      try {
+        sendFilterResponse(filterValues);
+      } catch (error) {
+        console.error("Failed to send filter response:", error);
+      }
+    },
+    [sendFilterResponse]
+  );
 
   return {
     isConnecting,
@@ -68,4 +74,4 @@ export function useChatLogic(serverUrl: string) {
     handleSendFilterResponse,
     cancelRequest,
   };
-} 
+}

@@ -1,17 +1,7 @@
 import { StateCreator } from "zustand";
-import { ChatActions, ChatState } from "../types";
-import { MessageRole } from "@/components/ChatMessage";
+import { ChatActions, ChatState, ChartSuggestionsByType } from "../types";
 
 export type ChatSlice = ChatState & ChatActions;
-
-const initMessage = {
-  role: "tool" as MessageRole,
-  content: "Hello, how can i help?",
-  timestamp: new Date(),
-  progressSteps: [],
-  messageId: "",
-  hasActiveRequest: false,
-};
 
 export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
   set,
@@ -20,10 +10,16 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
   // Initial state
   pending: false,
   status: "disconnected",
-  messages: [initMessage],
+  messages: [],
   isConnecting: false,
   progressMap: {},
   filtersMap: {},
+  chartSuggestionsMap: {},
+  chartDataMap: {},
+  rawResultMap: {},
+  detailedFormattedResultMap: {},
+  detailedRawResultMap: {},
+  warehouseQueryMap: {},
   sessionId: "",
   userId: "",
 
@@ -51,7 +47,7 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
       ],
     })),
 
-  clearMessages: () => set({ messages: [initMessage] }),
+  clearMessages: () => set({ messages: [] }),
 
   updateProgressMap: (messageId, progress) =>
     set((state) => ({
@@ -94,13 +90,24 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
       },
     })),
 
+  setChartSuggestions: (
+    messageId: string,
+    chartSuggestions: ChartSuggestionsByType
+  ) =>
+    set((state) => ({
+      chartSuggestionsMap: {
+        ...state.chartSuggestionsMap,
+        [messageId]: chartSuggestions,
+      },
+    })),
+
   clearFilters: () =>
     set(() => {
       return { filtersMap: {} };
     }),
 
   setSessionId: (sessionId) => set({ sessionId }),
-  
+
   setUserId: (userId) => set({ userId }),
 
   setMessagePending: (messageId, pending) =>
@@ -108,6 +115,49 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
       messages: state.messages.map((msg) =>
         msg.messageId === messageId ? { ...msg, pending } : msg
       ),
+    })),
+
+  setChartData: (messageId, chartType, data) =>
+    set((state) => ({
+      chartDataMap: {
+        ...state.chartDataMap,
+        [messageId]: {
+          ...(state.chartDataMap[messageId] || {}),
+          [chartType]: data,
+        },
+      },
+    })),
+
+  setRawResult: (messageId, rawResult) =>
+    set((state) => ({
+      rawResultMap: {
+        ...state.rawResultMap,
+        [messageId]: rawResult,
+      },
+    })),
+
+  setDetailedFormattedResult: (messageId, formattedResult) =>
+    set((state) => ({
+      detailedFormattedResultMap: {
+        ...state.detailedFormattedResultMap,
+        [messageId]: formattedResult,
+      },
+    })),
+
+  setDetailedRawResult: (messageId, rawResult) =>
+    set((state) => ({
+      detailedRawResultMap: {
+        ...state.detailedRawResultMap,
+        [messageId]: rawResult,
+      },
+    })),
+
+  setWarehouseQuery: (messageId, isWarehouseQuery) =>
+    set((state) => ({
+      warehouseQueryMap: {
+        ...state.warehouseQueryMap,
+        [messageId]: isWarehouseQuery,
+      },
     })),
 
   completeQuery: (messageId) =>

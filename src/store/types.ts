@@ -61,6 +61,12 @@ export interface ChatState {
   isConnecting: boolean;
   progressMap: Record<string, string[]>;
   filtersMap: Record<string, Filter[]>;
+  chartSuggestionsMap: Record<string, ChartSuggestionsByType>;
+  chartDataMap: Record<string, Record<string, unknown>>;
+  rawResultMap: Record<string, unknown>;
+  detailedFormattedResultMap: Record<string, string>;
+  detailedRawResultMap: Record<string, unknown>;
+  warehouseQueryMap: Record<string, boolean>;
   sessionId: string;
   userId: string;
 }
@@ -80,10 +86,24 @@ export interface ChatActions {
   getThinkingTime: (messageId: string) => number;
   setFilters: (messageId: string, filters: Filter[]) => void;
   clearFilters: () => void;
+
+  setChartData: (
+    messageId: string,
+    chartType: string,
+    data: unknown
+  ) => void;
+  setChartSuggestions: (
+    messageId: string,
+    chartSuggestions: ChartSuggestionsByType
+  ) => void;
   setSessionId: (sessionId: string) => void;
   setUserId: (userId: string) => void;
   setMessagePending: (messageId: string, pending: boolean) => void;
   completeQuery: (messageId: string) => void;
+  setRawResult: (messageId: string, rawResult: unknown) => void;
+  setDetailedFormattedResult: (messageId: string, formattedResult: string) => void;
+  setDetailedRawResult: (messageId: string, rawResult: unknown) => void;
+  setWarehouseQuery: (messageId: string, isWarehouseQuery: boolean) => void;
   requireFilters: (messageId: string) => void;
 }
 
@@ -102,3 +122,14 @@ export type ChatSlice = ChatState & ChatActions;
 export type SessionSlice = SessionState & SessionActions;
 
 export type StoreSlice = ChatSlice & SessionSlice & BusinessEntitiesSlice;
+
+export interface ChartSuggestion {
+  supported: boolean;
+  allowable_axes: {
+    x: string[];
+    y: Record<string, string[]>;
+    z?: Record<string, string[]>;
+  };
+}
+
+export type ChartSuggestionsByType = Record<string, ChartSuggestion>;

@@ -55,7 +55,11 @@ interface ProgressPayload {
   timestamp?: string;
 }
 
-type AddMessage = (role: MessageRole, content: string, messageId: string) => void;
+type AddMessage = (
+  role: MessageRole,
+  content: string,
+  messageId: string
+) => void;
 type SetProgressMap = (map: Record<string, string[]>) => void;
 type UpdateProgressMap = (messageId: string, message: string) => void;
 type SetPending = (pending: boolean) => void;
@@ -142,7 +146,8 @@ export class WebSocketMessageHandler {
   }
 
   private handleProgress(data: ProgressPayload) {
-    const { message_id, message, step, filters, session_id, title } = data.data || {};
+    const { message_id, message, step, filters, session_id, title } =
+      data.data || {};
     if (data.update_type === "title_generated" && session_id && title) {
       const newSession = {
         session_id,
@@ -187,7 +192,10 @@ export class WebSocketMessageHandler {
     if (!messages) return;
     this.clearMessages();
     const newProgressMap: Record<string, string[]> = {};
-    const sortedMessages = [...messages].sort((a, b) => a.message_order - b.message_order);
+    const sortedMessages = [...messages].sort(
+      (a, b) => a.message_order - b.message_order
+    );
+
     sortedMessages.forEach((msg) => {
       const { role, content, metadata } = msg;
       if (role === "user" || role === "assistant" || role === "tool") {
@@ -204,4 +212,4 @@ export class WebSocketMessageHandler {
     });
     this.setProgressMap(newProgressMap);
   }
-} 
+}

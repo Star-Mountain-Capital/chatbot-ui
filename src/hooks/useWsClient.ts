@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WsClient } from "@/lib/wsClient";
-import { Filter, SessionsData } from "@/store/types";
+import { Filter, SessionsData, ChartSuggestionsByType } from "@/store/types";
 import { v4 as uuidv4 } from "uuid";
 import { useStore } from "@/store";
 
@@ -15,6 +16,9 @@ interface ChatHistoryMessage {
   content: string;
   timestamp: string;
   message_order: number;
+  raw_data?: string;
+  formatted_data?: string;
+  chart_suggestions?: string;
   metadata?: {
     step?: string;
     progress?: number;
@@ -42,12 +46,17 @@ interface ProgressPayload {
     session_id?: string;
     title?: string;
     user_id?: string;
+    chart_suggestions?: ChartSuggestionsByType;
+    is_warehouse_query?: boolean;
   };
   result?: {
     message_id: string;
     message?: string;
     step?: string;
     filters?: Filter[];
+    chart_suggestions?: ChartSuggestionsByType;
+    raw_result?: unknown;
+    is_warehouse_query?: boolean;
   };
   content?: string;
   sessions_data?: SessionsData;
@@ -83,6 +92,11 @@ export function useWsClient({
     addSession,
     completeQuery,
     requireFilters,
+    setChartSuggestions,
+    setRawResult,
+    setDetailedFormattedResult,
+    setDetailedRawResult,
+    setWarehouseQuery,
   } = useStore();
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -104,17 +118,49 @@ export function useWsClient({
       const sortedMessages = [...historyMessages].sort(
         (a, b) => a.message_order - b.message_order
       );
-
       // Process each message
       sortedMessages.forEach((msg) => {
-        const { role, content, metadata } = msg;
-
+        const {
+          role,
+          content,
+          metadata,
+          raw_data,
+          formatted_data,
+          chart_suggestions,
+        } = msg;
         if (role === "user") {
           // Add user message
           addMessage("user", content, metadata?.message_id as string);
         } else if (role === "assistant") {
           // Add assistant message
-          addMessage("tool", content, metadata?.message_id as string);
+          if (
+            metadata?.message_type === "dax_response" ||
+            metadata?.query_type === "dax_measure"
+          ) {
+            addMessage(
+              "tool",
+              content,
+              (metadata?.message_id ?? msg.message_id) as string
+            );
+          } else {
+            addMessage(
+              "tool",
+              JSON.parse(raw_data ?? "{}") ?? content,
+              metadata?.message_id as string
+            );
+            setRawResult(
+              metadata?.message_id as string,
+              JSON.parse(raw_data ?? "{}")
+            );
+            setDetailedFormattedResult(
+              metadata?.message_id as string,
+              JSON.parse(formatted_data ?? "{}")
+            );
+            setChartSuggestions(
+              metadata?.message_id as string,
+              JSON.parse(chart_suggestions ?? "{}")
+            );
+          }
         } else if (role === "system") {
           // System messages contain progress information
           if (metadata?.workflow_data?.message_id) {
@@ -163,11 +209,48 @@ export function useWsClient({
 
           const data = payload as ProgressPayload;
           const type = data.type;
-          let message_id, message, step, filters;
+          let message_id: string | undefined;
+          let message: string | undefined;
+          let step: string | undefined;
+          let filters: Filter[] | undefined;
+          let chart_suggestions: ChartSuggestionsByType | undefined;
+          let raw_result: unknown | undefined;
+          let detailed_formatted_result: string | undefined;
+          let detailed_raw_result: unknown | undefined;
+          let is_warehouse_query: boolean | undefined;
           if (data.data) {
-            ({ message_id, message, step, filters } = data.data);
+            ({
+              message_id,
+              message,
+              step,
+              filters,
+              chart_suggestions,
+              raw_result,
+              detailed_formatted_result,
+              detailed_raw_result,
+              is_warehouse_query,
+            } = data.data as any);
           } else if (data.result) {
-            ({ message_id, message, step, filters } = data.result);
+            ({
+              message_id,
+              message,
+              step,
+              filters,
+              chart_suggestions,
+              raw_result,
+              detailed_formatted_result,
+              detailed_raw_result,
+              is_warehouse_query,
+            } = data.result as any);
+          }
+          if (chart_suggestions && message_id) {
+            setChartSuggestions(message_id, chart_suggestions);
+          }
+          if (raw_result && message_id) {
+            setRawResult(message_id, raw_result);
+          }
+          if (!!is_warehouse_query && message_id) {
+            setWarehouseQuery(message_id, is_warehouse_query);
           }
           if (type === "connected" && data.sessions_data) {
             // Store the sessions data when connected
@@ -205,6 +288,22 @@ export function useWsClient({
                   },
                 };
                 addSession(newSession);
+              }
+
+              // Handle detailed_formatting_complete update_type
+              if (data.update_type === "detailed_formatting_complete") {
+                if (detailed_formatted_result && message_id) {
+                  setDetailedFormattedResult(
+                    message_id,
+                    detailed_formatted_result
+                  );
+                }
+                if (detailed_raw_result && message_id) {
+                  setDetailedRawResult(message_id, detailed_raw_result);
+                }
+                if (chart_suggestions && message_id) {
+                  setChartSuggestions(message_id, chart_suggestions);
+                }
               }
 
               if (message) {
@@ -255,6 +354,8 @@ export function useWsClient({
       addSession,
       completeQuery,
       requireFilters,
+      setChartSuggestions,
+      setRawResult,
     ]
   );
 
