@@ -127,6 +127,7 @@ export function useWsClient({
           raw_data,
           formatted_data,
           chart_suggestions,
+          message_id,
         } = msg;
         if (role === "user") {
           // Add user message
@@ -140,24 +141,21 @@ export function useWsClient({
             addMessage(
               "tool",
               content,
-              (metadata?.message_id ?? msg.message_id) as string
+              (message_id ?? msg.message_id) as string
             );
           } else {
             addMessage(
               "tool",
               JSON.parse(raw_data ?? "{}") ?? content,
-              metadata?.message_id as string
+              message_id as string
             );
-            setRawResult(
-              metadata?.message_id as string,
-              JSON.parse(raw_data ?? "{}")
-            );
+            setRawResult(message_id as string, JSON.parse(raw_data ?? "{}"));
             setDetailedFormattedResult(
-              metadata?.message_id as string,
+              message_id as string,
               JSON.parse(formatted_data ?? "{}")
             );
             setChartSuggestions(
-              metadata?.message_id as string,
+              message_id as string,
               JSON.parse(chart_suggestions ?? "{}")
             );
           }

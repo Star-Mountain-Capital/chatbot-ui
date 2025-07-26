@@ -10,6 +10,8 @@ import {
   WandSparkles,
   Check,
   Loader2,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { marked } from "marked";
 
@@ -57,6 +59,7 @@ import {
 } from "./ui/dialog";
 import { useStore } from "@/store";
 import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
 import ChartRenderer from "./ChartRenderer";
 
 const IconMap: Record<string, React.ReactNode> = {
@@ -259,6 +262,73 @@ const ChartConfigModal: React.FC<ChartConfigModalProps> = ({
   );
 };
 
+interface FeedbackModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (rating: "like" | "dislike", reason?: string) => void;
+  loading: boolean;
+}
+
+const FeedbackModal: React.FC<FeedbackModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  loading,
+}) => {
+  const [reason, setReason] = useState("");
+
+  const handleSubmit = () => {
+    onSubmit("dislike", reason);
+    setReason("");
+  };
+
+  const handleClose = () => {
+    setReason("");
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Provide Feedback</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Reason for dislike (required)
+            </label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Please explain why you disliked this response..."
+              className="min-h-[100px]"
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={handleClose} disabled={loading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!reason.trim() || loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Feedback"
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export const ChatMessage = React.memo(function ChatMessage({
   content,
   role,
@@ -275,12 +345,18 @@ export const ChatMessage = React.memo(function ChatMessage({
     detailedFormattedResultMap,
     detailedRawResultMap,
     warehouseQueryMap,
+    sessionId,
+    userId,
   } = useStore();
   const [isOpen, setIsOpen] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState<Set<string>>(new Set());
   const [completedCharts, setCompletedCharts] = useState<Set<string>>(
     new Set()
   );
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<"like" | "dislike" | null>(null);
+  
   const isWarehouseQuery = Object.keys(warehouseQueryMap ?? {}).includes(
     messageId
   );
@@ -406,6 +482,62 @@ export const ChatMessage = React.memo(function ChatMessage({
       setSelectedChartType(chartTypes[0]);
     }
   }, [chartTypes, selectedChartType]);
+
+  const handleFeedback = useCallback(
+    async (rating: "like" | "dislike", reason?: string) => {
+      
+      setFeedbackLoading(true);
+      
+      try {
+        const baseUrl =
+          import.meta.env.VITE_API_BASE_URL || "http://172.173.148.66:8000";
+
+        const payload = {
+          message_id: messageId,
+          session_id: sessionId,
+          user_id: userId,
+          rating,
+          ...(rating === "dislike" && { reason }),
+        };
+
+        const response = await fetch(`${baseUrl}/feedback/message`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Feedback submitted successfully:", result);
+          setFeedbackSubmitted(rating);
+          if (rating === "dislike") {
+            setShowFeedbackModal(false);
+          }
+        } else {
+          console.error("Failed to submit feedback:", await response.text());
+        }
+      } catch (error) {
+        console.error("Error submitting feedback:", error);
+      } finally {
+        setFeedbackLoading(false);
+      }
+    },
+    [messageId, sessionId, userId, feedbackSubmitted]
+  );
+
+  const handleLike = () => {
+    if (feedbackSubmitted !== "like") {
+      handleFeedback("like");
+    }
+  };
+
+  const handleDislike = () => {
+    if (feedbackSubmitted !== "dislike") {
+      setShowFeedbackModal(true);
+    }
+  };
 
   return (
     <div
@@ -645,22 +777,59 @@ export const ChatMessage = React.memo(function ChatMessage({
           </ReactMarkdown>
         )}
       </div>
-      {!chartSuggestions && role === "tool" && isWarehouseQuery && (
+      {role === "tool" && (
         <div className="flex items-center gap-2">
-          <span className="text-sm animate-text-wave-dark">
-            Generating formatted data
-          </span>
-          <WandSparkles className="w-4 h-4" />
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLike}
+              disabled={feedbackLoading || feedbackSubmitted === "like"}
+              className={cn(
+                "h-8 w-8 p-0 cursor-pointer",
+                feedbackSubmitted === "like" && "text-green-600 bg-green-50 dark:bg-green-900/20"
+              )}
+            >
+              <ThumbsUp className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDislike}
+              disabled={feedbackLoading || feedbackSubmitted === "dislike"}
+              className={cn(
+                "h-8 w-8 p-0 cursor-pointer",
+                feedbackSubmitted === "dislike" && "text-red-600 bg-red-50 dark:bg-red-900/20"
+              )}
+            >
+              <ThumbsDown className="w-4 h-4" />
+            </Button>
+          </div>
+          {chartSuggestions && (
+            <ChartConfigModal
+              chartSuggestions={chartSuggestions}
+              onChartSelect={handleChartSelect}
+              loadingCharts={loadingCharts}
+              completedCharts={completedCharts}
+            />
+          )}
+          {!chartSuggestions && isWarehouseQuery && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm animate-text-wave-dark">
+                Generating formatted data
+              </span>
+              <WandSparkles className="w-4 h-4 text-gray-400" />
+            </div>
+          )}
         </div>
       )}
-      {chartSuggestions && role === "tool" && (
-        <ChartConfigModal
-          chartSuggestions={chartSuggestions}
-          onChartSelect={handleChartSelect}
-          loadingCharts={loadingCharts}
-          completedCharts={completedCharts}
-        />
-      )}
+
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        onSubmit={handleFeedback}
+        loading={feedbackLoading}
+      />
 
       {role === "user" && progressSteps?.length > 0 && (
         <Accordion
