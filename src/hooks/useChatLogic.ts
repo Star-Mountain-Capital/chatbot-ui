@@ -26,7 +26,7 @@ export function useChatLogic(serverUrl: string) {
   useEffect(() => {
     try {
       if (isDevelopmentMode()) {
-        setUserId("b23461ed-b833-40c7-af8c-952e2ad06740");
+        setUserId(getDevUserId());
       } else {
         const userId = getUserIdFromUrl();
         if (userId) {
