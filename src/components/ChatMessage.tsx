@@ -38,11 +38,8 @@ import {
   SelectContent,
   SelectItem,
 } from "./ui/select";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import rehypeSanitize from "rehype-sanitize";
 import { markdownTable } from "markdown-table";
+import { MarkdownRenderer } from "./Tool/Table";
 
 import {
   Accordion,
@@ -71,6 +68,48 @@ const IconMap: Record<string, React.ReactNode> = {
   box: <ChartCandlestickIcon className="w-4 h-4" />,
   histogram: <ChartBarIcon className="w-4 h-4" />,
 };
+
+interface FeedbackModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (rating: "like" | "dislike", reason?: string) => void;
+  loading: boolean;
+}
+
+interface ActionButtonsProps {
+  feedbackLoading: boolean;
+  feedbackSubmitted: "like" | "dislike" | null;
+  handleLike: () => void;
+  handleDislike: () => void;
+  chartSuggestions:
+    | Record<
+        string,
+        {
+          supported: boolean;
+          allowable_axes: {
+            x: string[];
+            y: Record<string, string[]>;
+            z?: Record<string, string[]>;
+          };
+        }
+      >
+    | undefined;
+  handleChartSelect: (
+    chartType: string,
+    xAxis: string,
+    yAxes: string[]
+  ) => void;
+  loadingCharts: Set<string>;
+  completedCharts: Set<string>;
+  isWarehouseQuery: boolean;
+}
+
+interface ProgressStepsProps {
+  progressSteps: string[];
+  messageId: string;
+  pending: boolean;
+  getThinkingTime: (messageId: string) => number;
+}
 
 interface ChartConfigModalProps {
   chartSuggestions: Record<
@@ -262,13 +301,6 @@ const ChartConfigModal: React.FC<ChartConfigModalProps> = ({
   );
 };
 
-interface FeedbackModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (rating: "like" | "dislike", reason?: string) => void;
-  loading: boolean;
-}
-
 const FeedbackModal: React.FC<FeedbackModalProps> = ({
   isOpen,
   onClose,
@@ -309,10 +341,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
             <Button variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!reason.trim() || loading}
-            >
+            <Button onClick={handleSubmit} disabled={!reason.trim() || loading}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -326,6 +355,138 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
         </div>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const ActionButtons: React.FC<ActionButtonsProps> = ({
+  feedbackLoading,
+  feedbackSubmitted,
+  handleLike,
+  handleDislike,
+  chartSuggestions,
+  handleChartSelect,
+  loadingCharts,
+  completedCharts,
+  isWarehouseQuery,
+}) => {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLike}
+          disabled={feedbackLoading || feedbackSubmitted === "like"}
+          className={cn(
+            "h-8 w-8 p-0 cursor-pointer",
+            feedbackSubmitted === "like" &&
+              "text-green-600 bg-green-50 dark:bg-green-900/20"
+          )}
+        >
+          <ThumbsUp className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDislike}
+          disabled={feedbackLoading || feedbackSubmitted === "dislike"}
+          className={cn(
+            "h-8 w-8 p-0 cursor-pointer",
+            feedbackSubmitted === "dislike" &&
+              "text-red-600 bg-red-50 dark:bg-red-900/20"
+          )}
+        >
+          <ThumbsDown className="w-4 h-4" />
+        </Button>
+      </div>
+      {chartSuggestions && Object.keys(chartSuggestions ?? {}).length && (
+        <ChartConfigModal
+          chartSuggestions={chartSuggestions}
+          onChartSelect={handleChartSelect}
+          loadingCharts={loadingCharts}
+          completedCharts={completedCharts}
+        />
+      )}
+      {!chartSuggestions && isWarehouseQuery && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm animate-text-wave-dark">
+            Generating formatted data
+          </span>
+          <WandSparkles className="w-4 h-4 text-gray-400" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProgressSteps: React.FC<ProgressStepsProps> = ({
+  progressSteps,
+  messageId,
+  pending,
+  getThinkingTime,
+}) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    if (!pending) {
+      setIsOpen(false);
+    }
+  }, [pending]);
+
+  return (
+    <Accordion
+      type="single"
+      collapsible
+      value={isOpen ? "item-1" : ""}
+      onValueChange={(value) => setIsOpen(value === "item-1")}
+    >
+      <AccordionItem value="item-1">
+        <AccordionTrigger>
+          <div className="flex items-center gap-2">
+            <span>
+              {pending
+                ? "Thinking"
+                : `Thought for ${getThinkingTime(messageId)} seconds`}
+            </span>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="flex flex-col mb-2">
+            <div className="w-full max-w-md">
+              {progressSteps.map((step, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={cn(
+                        "h-[50%] w-0.5",
+                        idx !== 0 && "bg-blue-300"
+                      )}
+                    />
+                    <div
+                      className={`w-2 h-2 rounded-full bg-blue-500 justify-center ${
+                        idx === 0 ? "animate-pulse" : ""
+                      }`}
+                      style={{ zIndex: 1 }}
+                    />
+                    <div
+                      className={cn(
+                        "h-[50%] w-0.5",
+                        idx !== progressSteps.length - 1 && "bg-blue-300"
+                      )}
+                    />
+                  </div>
+                  <div className="py-1">
+                    <div className="ml-2 text-sm text-blue-900 dark:text-blue-100 bg-blue-50 dark:bg-blue-900/50 px-3 py-1 rounded shadow animate-fade-in">
+                      {step}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
 
@@ -348,15 +509,16 @@ export const ChatMessage = React.memo(function ChatMessage({
     sessionId,
     userId,
   } = useStore();
-  const [isOpen, setIsOpen] = useState(true);
   const [loadingCharts, setLoadingCharts] = useState<Set<string>>(new Set());
   const [completedCharts, setCompletedCharts] = useState<Set<string>>(
     new Set()
   );
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState<"like" | "dislike" | null>(null);
-  
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<
+    "like" | "dislike" | null
+  >(null);
+
   const isWarehouseQuery = Object.keys(warehouseQueryMap ?? {}).includes(
     messageId
   );
@@ -369,7 +531,7 @@ export const ChatMessage = React.memo(function ChatMessage({
   const parseContentToMarkdown = (content: unknown): string => {
     try {
       let parsedContent: unknown = content;
-      
+
       if (typeof content === "string" && !isMarkdown(content)) {
         parsedContent = JSON.parse(
           content
@@ -382,13 +544,16 @@ export const ChatMessage = React.memo(function ChatMessage({
 
       // Type guard to check if content has columns and rows
       if (
-        parsedContent && 
-        typeof parsedContent === "object" && 
+        parsedContent &&
+        typeof parsedContent === "object" &&
         parsedContent !== null &&
-        "columns" in parsedContent && 
+        "columns" in parsedContent &&
         "rows" in parsedContent
       ) {
-        const { columns, rows } = parsedContent as { columns: string[]; rows: string[][] };
+        const { columns, rows } = parsedContent as {
+          columns: string[];
+          rows: string[][];
+        };
         const tableData = [columns, ...rows];
         return markdownTable(tableData);
       }
@@ -463,12 +628,6 @@ export const ChatMessage = React.memo(function ChatMessage({
     ]
   );
 
-  useEffect(() => {
-    if (!pending) {
-      setIsOpen(false);
-    }
-  }, [pending]);
-
   const chartDataForMessage = chartDataMap[messageId];
   const chartTypes = chartDataForMessage
     ? Object.keys(chartDataForMessage)
@@ -485,9 +644,8 @@ export const ChatMessage = React.memo(function ChatMessage({
 
   const handleFeedback = useCallback(
     async (rating: "like" | "dislike", reason?: string) => {
-      
       setFeedbackLoading(true);
-      
+
       try {
         const baseUrl =
           import.meta.env.VITE_API_BASE_URL || "http://172.173.148.66:8000";
@@ -539,159 +697,42 @@ export const ChatMessage = React.memo(function ChatMessage({
     }
   };
 
-  return (
-    <div
-      className={cn(
-        "flex flex-col w-full mb-6",
-        role === "user" ? "justify-end" : "justify-start"
-      )}
-    >
-      <div
-        className={cn(
-          "py-3 px-5 rounded-2xl max-w-[80%] transition-all",
-          role === "user"
-            ? "bg-primary text-primary-foreground rounded-tr-md rounded-br-2xl rounded-tl-2xl ml-auto"
-            : "bg-none text-foreground rounded-tl-md rounded-bl-2xl rounded-tr-2xl mr-auto max-w-none w-full"
-        )}
-      >
-        {(chartDataForMessage || detailedFormattedResultMap[messageId]) &&
-        role === "tool" ? (
+  const renderMessageContent = () => {
+    const hasChartData = !!chartDataForMessage;
+    const hasFormattedData = !!detailedFormattedResultMap[messageId];
+    const isToolMessage = role === "tool";
+
+    let contentType: "simple" | "tabs" = "simple";
+
+    if (isToolMessage && (hasChartData || hasFormattedData)) {
+      contentType = "tabs";
+    }
+
+    switch (contentType) {
+      case "tabs":
+        return (
           <Tabs defaultValue="raw" className="w-full">
             <TabsList>
               <TabsTrigger value="raw">Raw</TabsTrigger>
-              {detailedFormattedResultMap[messageId] && (
+              {hasFormattedData && (
                 <TabsTrigger value="formatted">Formatted</TabsTrigger>
               )}
-              {chartDataForMessage && (
-                <TabsTrigger value="chart">Chart</TabsTrigger>
-              )}
+              {hasChartData && <TabsTrigger value="chart">Chart</TabsTrigger>}
             </TabsList>
             <TabsContent value="raw" className="pt-2">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                components={{
-                  a: (props) => (
-                    <a
-                      {...props}
-                      className="text-primary underline hover:opacity-80"
-                    />
-                  ),
-                  img: (props) => (
-                    <img
-                      {...props}
-                      className="rounded-lg max-h-64 object-contain mx-auto"
-                    />
-                  ),
-                  table: (props) => (
-                    <div className="overflow-x-auto my-6 max-h-[400px]">
-                      <table
-                        {...props}
-                        className="min-w-full border-collapse bg-background border border-border rounded-lg shadow-sm"
-                      />
-                    </div>
-                  ),
-                  thead: (props) => (
-                    <thead
-                      {...props}
-                      className="bg-muted/80 dark:bg-muted/60"
-                    />
-                  ),
-                  tbody: (props) => (
-                    <tbody
-                      {...props}
-                      className="bg-background divide-y divide-border/50"
-                    />
-                  ),
-                  tr: (props) => (
-                    <tr
-                      {...props}
-                      className="transition-colors hover:bg-muted/30 dark:hover:bg-muted/20"
-                    />
-                  ),
-                  th: (props) => (
-                    <th
-                      {...props}
-                      className="px-6 py-3 text-left text-sm font-semibold text-foreground/90 bg-gradient-to-b from-muted/60 to-muted/80 border-r border-border/50 last:border-r-0 first:rounded-tl-lg last:rounded-tr-lg"
-                    />
-                  ),
-                  td: (props) => (
-                    <td
-                      {...props}
-                      className="px-6 py-3 text-sm text-foreground/80 border-r border-border/30 last:border-r-0 whitespace-nowrap"
-                    />
-                  ),
-                }}
-              >
-                {parsedContent}
-              </ReactMarkdown>
+              <MarkdownRenderer>{parsedContent}</MarkdownRenderer>
             </TabsContent>
-            {detailedFormattedResultMap[messageId] && (
+            {hasFormattedData && (
               <TabsContent value="formatted" className="pt-2">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                  components={{
-                    a: (props) => (
-                      <a
-                        {...props}
-                        className="text-primary underline hover:opacity-80"
-                      />
-                    ),
-                    img: (props) => (
-                      <img
-                        {...props}
-                        className="rounded-lg max-h-64 object-contain mx-auto"
-                      />
-                    ),
-                    table: (props) => (
-                      <div className="overflow-x-auto my-6 max-h-[400px]">
-                        <table
-                          {...props}
-                          className="min-w-full border-collapse bg-background border border-border rounded-lg shadow-sm"
-                        />
-                      </div>
-                    ),
-                    thead: (props) => (
-                      <thead
-                        {...props}
-                        className="bg-muted/80 dark:bg-muted/60"
-                      />
-                    ),
-                    tbody: (props) => (
-                      <tbody
-                        {...props}
-                        className="bg-background divide-y divide-border/50"
-                      />
-                    ),
-                    tr: (props) => (
-                      <tr
-                        {...props}
-                        className="transition-colors hover:bg-muted/30 dark:hover:bg-muted/20"
-                      />
-                    ),
-                    th: (props) => (
-                      <th
-                        {...props}
-                        className="px-6 py-3 text-left text-sm font-semibold text-foreground/90 bg-gradient-to-b from-muted/60 to-muted/80 border-r border-border/50 last:border-r-0 first:rounded-tl-lg last:rounded-tr-lg"
-                      />
-                    ),
-                    td: (props) => (
-                      <td
-                        {...props}
-                        className="px-6 py-3 text-sm text-foreground/80 border-r border-border/30 last:border-r-0 whitespace-nowrap"
-                      />
-                    ),
-                  }}
-                >
+                <MarkdownRenderer>
                   {parseContentToMarkdown(
                     detailedFormattedResultMap[messageId]
                   )}
-                </ReactMarkdown>
+                </MarkdownRenderer>
               </TabsContent>
             )}
             <TabsContent value="chart" className="pt-2">
-              {chartTypes.length > 1 && role === "tool" && (
+              {chartTypes.length > 1 && isToolMessage && (
                 <div className="mb-4 w-48">
                   <Select
                     value={selectedChartType}
@@ -719,109 +760,43 @@ export const ChatMessage = React.memo(function ChatMessage({
               )}
             </TabsContent>
           </Tabs>
-        ) : (
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw, rehypeSanitize]}
-            components={{
-              a: (props) => (
-                <a
-                  {...props}
-                  className="text-primary underline hover:opacity-80"
-                />
-              ),
-              img: (props) => (
-                <img
-                  {...props}
-                  className="rounded-lg max-h-64 object-contain mx-auto"
-                />
-              ),
-              table: (props) => (
-                <div className="overflow-x-auto my-6 max-h-[400px]">
-                  <table
-                    {...props}
-                    className="min-w-full border-collapse bg-background border border-border rounded-lg shadow-sm"
-                  />
-                </div>
-              ),
-              thead: (props) => (
-                <thead {...props} className="bg-muted/80 dark:bg-muted/60" />
-              ),
-              tbody: (props) => (
-                <tbody
-                  {...props}
-                  className="bg-background divide-y divide-border/50"
-                />
-              ),
-              tr: (props) => (
-                <tr
-                  {...props}
-                  className="transition-colors hover:bg-muted/30 dark:hover:bg-muted/20"
-                />
-              ),
-              th: (props) => (
-                <th
-                  {...props}
-                  className="px-6 py-3 text-left text-sm font-semibold text-foreground/90 bg-gradient-to-b from-muted/60 to-muted/80 border-r border-border/50 last:border-r-0 first:rounded-tl-lg last:rounded-tr-lg"
-                />
-              ),
-              td: (props) => (
-                <td
-                  {...props}
-                  className="px-6 py-3 text-sm text-foreground/80 border-r border-border/30 last:border-r-0 whitespace-nowrap"
-                />
-              ),
-            }}
-          >
-            {parsedContent}
-          </ReactMarkdown>
+        );
+
+      case "simple":
+      default:
+        return <MarkdownRenderer>{parsedContent}</MarkdownRenderer>;
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col w-full mb-6",
+        role === "user" ? "justify-end" : "justify-start"
+      )}
+    >
+      <div
+        className={cn(
+          "py-3 px-5 rounded-2xl max-w-[80%] transition-all",
+          role === "user"
+            ? "bg-primary text-primary-foreground rounded-tr-md rounded-br-2xl rounded-tl-2xl ml-auto"
+            : "bg-none text-foreground rounded-tl-md rounded-bl-2xl rounded-tr-2xl mr-auto max-w-none w-full"
         )}
+      >
+        {renderMessageContent()}
       </div>
       {role === "tool" && (
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLike}
-              disabled={feedbackLoading || feedbackSubmitted === "like"}
-              className={cn(
-                "h-8 w-8 p-0 cursor-pointer",
-                feedbackSubmitted === "like" && "text-green-600 bg-green-50 dark:bg-green-900/20"
-              )}
-            >
-              <ThumbsUp className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDislike}
-              disabled={feedbackLoading || feedbackSubmitted === "dislike"}
-              className={cn(
-                "h-8 w-8 p-0 cursor-pointer",
-                feedbackSubmitted === "dislike" && "text-red-600 bg-red-50 dark:bg-red-900/20"
-              )}
-            >
-              <ThumbsDown className="w-4 h-4" />
-            </Button>
-          </div>
-          {chartSuggestions && (
-            <ChartConfigModal
-              chartSuggestions={chartSuggestions}
-              onChartSelect={handleChartSelect}
-              loadingCharts={loadingCharts}
-              completedCharts={completedCharts}
-            />
-          )}
-          {!chartSuggestions && isWarehouseQuery && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm animate-text-wave-dark">
-                Generating formatted data
-              </span>
-              <WandSparkles className="w-4 h-4 text-gray-400" />
-            </div>
-          )}
-        </div>
+        <ActionButtons
+          feedbackLoading={feedbackLoading}
+          feedbackSubmitted={feedbackSubmitted}
+          handleLike={handleLike}
+          handleDislike={handleDislike}
+          chartSuggestions={chartSuggestions}
+          handleChartSelect={handleChartSelect}
+          loadingCharts={loadingCharts}
+          completedCharts={completedCharts}
+          isWarehouseQuery={isWarehouseQuery}
+        />
       )}
 
       <FeedbackModal
@@ -832,59 +807,12 @@ export const ChatMessage = React.memo(function ChatMessage({
       />
 
       {role === "user" && progressSteps?.length > 0 && (
-        <Accordion
-          type="single"
-          collapsible
-          value={isOpen ? "item-1" : ""}
-          onValueChange={(value) => setIsOpen(value === "item-1")}
-        >
-          <AccordionItem value="item-1">
-            <AccordionTrigger>
-              <div className="flex items-center gap-2">
-                <span>
-                  {pending
-                    ? "Thinking"
-                    : `Thought for ${getThinkingTime(messageId)} seconds`}
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="flex flex-col mb-2">
-                <div className="w-full max-w-md">
-                  {progressSteps.map((step, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={cn(
-                            "h-[50%] w-0.5",
-                            idx !== 0 && "bg-blue-300"
-                          )}
-                        />
-                        <div
-                          className={`w-2 h-2 rounded-full bg-blue-500 justify-center ${
-                            idx === 0 ? "animate-pulse" : ""
-                          }`}
-                          style={{ zIndex: 1 }}
-                        />
-                        <div
-                          className={cn(
-                            "h-[50%] w-0.5",
-                            idx !== progressSteps.length - 1 && "bg-blue-300"
-                          )}
-                        />
-                      </div>
-                      <div className="py-1">
-                        <div className="ml-2 text-sm text-blue-900 dark:text-blue-100 bg-blue-50 dark:bg-blue-900/50 px-3 py-1 rounded shadow animate-fade-in">
-                          {step}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+        <ProgressSteps
+          progressSteps={progressSteps}
+          messageId={messageId}
+          pending={pending}
+          getThinkingTime={getThinkingTime}
+        />
       )}
     </div>
   );

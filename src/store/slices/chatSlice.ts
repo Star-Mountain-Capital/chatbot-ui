@@ -22,6 +22,7 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
   warehouseQueryMap: {},
   sessionId: "",
   userId: "",
+  questions: [],
 
   // Actions
   setPending: (pending) => set({ pending }),
@@ -135,7 +136,16 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
         [messageId]: rawResult,
       },
     })),
-
+  setQuestions: (questions: string[]) => {
+    set(() => ({
+      questions: questions?.length ? questions : [],
+    }));
+  },
+  removeQuestion: (questionToRemove: string) => {
+    set((state) => ({
+      questions: state.questions.filter(q => q !== questionToRemove),
+    }));
+  },
   setDetailedFormattedResult: (messageId, formattedResult) =>
     set((state) => ({
       detailedFormattedResultMap: {

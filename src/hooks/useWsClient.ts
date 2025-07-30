@@ -97,6 +97,7 @@ export function useWsClient({
     setDetailedFormattedResult,
     setDetailedRawResult,
     setWarehouseQuery,
+    setQuestions,
   } = useStore();
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -146,7 +147,9 @@ export function useWsClient({
           } else {
             addMessage(
               "tool",
-              JSON.parse(raw_data ?? "{}") ?? content,
+              raw_data && typeof raw_data === "string"
+                ? JSON.parse(raw_data)
+                : content,
               message_id as string
             );
             setRawResult(message_id as string, JSON.parse(raw_data ?? "{}"));
@@ -216,6 +219,8 @@ export function useWsClient({
           let detailed_formatted_result: string | undefined;
           let detailed_raw_result: unknown | undefined;
           let is_warehouse_query: boolean | undefined;
+          let questions: string[] | undefined;
+          let multiple_questions_detected: boolean | undefined;
           if (data.data) {
             ({
               message_id,
@@ -227,6 +232,8 @@ export function useWsClient({
               detailed_formatted_result,
               detailed_raw_result,
               is_warehouse_query,
+              multiple_questions_detected,
+              questions,
             } = data.data as any);
           } else if (data.result) {
             ({
@@ -239,7 +246,12 @@ export function useWsClient({
               detailed_formatted_result,
               detailed_raw_result,
               is_warehouse_query,
+              multiple_questions_detected,
+              questions,
             } = data.result as any);
+          }
+          if (multiple_questions_detected && questions?.length) {
+            setQuestions(questions);
           }
           if (chart_suggestions && message_id) {
             setChartSuggestions(message_id, chart_suggestions);

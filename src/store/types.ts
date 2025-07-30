@@ -69,6 +69,7 @@ export interface ChatState {
   warehouseQueryMap: Record<string, boolean>;
   sessionId: string;
   userId: string;
+  questions: string[];
 }
 
 export interface ChatActions {
@@ -87,11 +88,7 @@ export interface ChatActions {
   setFilters: (messageId: string, filters: Filter[]) => void;
   clearFilters: () => void;
 
-  setChartData: (
-    messageId: string,
-    chartType: string,
-    data: unknown
-  ) => void;
+  setChartData: (messageId: string, chartType: string, data: unknown) => void;
   setChartSuggestions: (
     messageId: string,
     chartSuggestions: ChartSuggestionsByType
@@ -101,7 +98,12 @@ export interface ChatActions {
   setMessagePending: (messageId: string, pending: boolean) => void;
   completeQuery: (messageId: string) => void;
   setRawResult: (messageId: string, rawResult: unknown) => void;
-  setDetailedFormattedResult: (messageId: string, formattedResult: string) => void;
+  setQuestions: (questions: string[]) => void;
+  removeQuestion: (questionToRemove: string) => void;
+  setDetailedFormattedResult: (
+    messageId: string,
+    formattedResult: string
+  ) => void;
   setDetailedRawResult: (messageId: string, rawResult: unknown) => void;
   setWarehouseQuery: (messageId: string, isWarehouseQuery: boolean) => void;
   requireFilters: (messageId: string) => void;

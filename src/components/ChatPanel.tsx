@@ -7,7 +7,9 @@ import { Send, XCircle, Info } from "lucide-react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ContextMenu } from "./ContextMenu";
 import { FilterInput } from "./FilterInput";
+import { QuestionsSelector } from "./QuestionsSelector";
 import { useChatInput } from "@/hooks/useChatInput";
+import { useStore } from "@/store";
 
 // Custom tooltip content with improved arrow styling
 function CustomTooltipContent({
@@ -51,6 +53,15 @@ export const ChatPanel = React.memo(function ChatPanel({
   progressMap = {},
   hasActiveRequest = false,
 }: ChatPanelProps) {
+  const { questions, removeQuestion } = useStore();
+
+  const handleRunQuestion = (question: string) => {
+    onSendMessage(question);
+    removeQuestion(question);
+  };
+
+  // Hide questions selector when there's an active request
+  const shouldShowQuestions = questions.length > 0 && !hasActiveRequest && connectionStatus === "connected";
   const {
     inputValue,
     setInputValue,
@@ -92,6 +103,11 @@ export const ChatPanel = React.memo(function ChatPanel({
               progressSteps={progressMap[msg.messageId]}
             />
           ))}
+          {shouldShowQuestions && <QuestionsSelector
+            questions={questions}
+            onRunQuestion={handleRunQuestion}
+            disabled={hasActiveRequest || connectionStatus !== "connected"}
+          />}
         </div>
       </div>
 

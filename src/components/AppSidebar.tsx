@@ -27,7 +27,7 @@ interface AppSidebarProps {
 export const AppSidebar = React.memo(function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
   const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
-  const { sessions, setSessionId, clearMessages } = useStore();
+  const { sessions, setSessionId, clearMessages, setQuestions } = useStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const toggleTheme = () => {
@@ -39,6 +39,7 @@ export const AppSidebar = React.memo(function AppSidebar({ onGetChatHistory }: A
     clearMessages();
     const newSessionId = uuidv4();
     setSessionId(newSessionId);
+    setQuestions([]);
   };
 
   const handleSearchChats = () => {
