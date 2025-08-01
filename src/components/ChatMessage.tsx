@@ -14,6 +14,8 @@ import {
   ThumbsDown,
 } from "lucide-react";
 import { marked } from "marked";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export type MessageRole = "user" | "tool";
 
@@ -27,6 +29,7 @@ export interface ChatMessageProps {
   thinkingEndTime?: Date;
   thinkingStartTime?: Date;
   pending?: boolean;
+  onSendConfirmationResponse?: (messageId: string, confirmationMessage: string) => void;
 }
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -496,6 +499,7 @@ export const ChatMessage = React.memo(function ChatMessage({
   progressSteps,
   messageId,
   pending = false,
+  onSendConfirmationResponse,
 }: ChatMessageProps) {
   const {
     getThinkingTime,
@@ -506,6 +510,8 @@ export const ChatMessage = React.memo(function ChatMessage({
     detailedFormattedResultMap,
     detailedRawResultMap,
     warehouseQueryMap,
+    confirmation,
+    clearConfirmation,
     sessionId,
     userId,
   } = useStore();
@@ -572,6 +578,27 @@ export const ChatMessage = React.memo(function ChatMessage({
     }
   };
   const parsedContent = parseContentToMarkdown(content);
+
+  const processConfirmationContent = (content: string): string => {
+    let processed = content;
+    try {
+      const parsed = JSON.parse(content);
+      processed = typeof parsed === 'string' ? parsed : content;
+      console.log('JSON parsed successfully:', parsed);
+    } catch {
+      processed = content;
+      console.log('Not JSON, using original content');
+    }
+    
+    processed = processed
+      .replace(/\\n/g, '\n') 
+      .replace(/\\"/g, '"')  
+      .replace(/\\\\/g, '\\');
+    
+    processed = processed.replace(/\n/g, '  \n');
+    
+    return processed;
+  };
 
   const handleChartSelect = useCallback(
     async (chartType: string, xAxis: string, yAxes: string[]) => {
@@ -813,6 +840,49 @@ export const ChatMessage = React.memo(function ChatMessage({
           pending={pending}
           getThinkingTime={getThinkingTime}
         />
+      )}
+      {confirmation && confirmation.message && onSendConfirmationResponse && confirmation.messageId === messageId && (
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="mb-3">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              {confirmation.message}
+            </h4>
+            <Tabs defaultValue="reasoning" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="reasoning">Reasoning</TabsTrigger>
+                <TabsTrigger value="query">Query</TabsTrigger>
+              </TabsList>
+              <TabsContent value="reasoning" className="pt-2">
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  <MarkdownRenderer>{processConfirmationContent(confirmation.confirmationMessage)}</MarkdownRenderer>
+                </div>
+              </TabsContent>
+              <TabsContent value="query" className="pt-2">
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  <SyntaxHighlighter language={confirmation.is_sql_query ? "sql" : "dax"} style={tomorrow}>
+                    {processConfirmationContent(confirmation.is_sql_query ? confirmation.sql_query : confirmation.dax_query)}
+                  </SyntaxHighlighter>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onSendConfirmationResponse(confirmation.messageId, "run")}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Confirm & Execute
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                clearConfirmation();
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

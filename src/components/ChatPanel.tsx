@@ -37,6 +37,7 @@ interface ChatPanelProps {
   onSendMessage: (message: string) => void;
   onCancelRequest?: () => void;
   onSendFilterResponse?: (filterValues: Record<string, string>) => void;
+  onSendConfirmationResponse?: (messageId: string, confirmationMessage: string) => void;
   messages: ChatMessageProps[];
   connectionStatus: string;
   progressMap?: Record<string, string[]>;
@@ -48,6 +49,7 @@ export const ChatPanel = React.memo(function ChatPanel({
   onSendMessage,
   onCancelRequest,
   onSendFilterResponse,
+  onSendConfirmationResponse,
   messages,
   connectionStatus,
   progressMap = {},
@@ -101,6 +103,7 @@ export const ChatPanel = React.memo(function ChatPanel({
               loading={hasActiveRequest && index == messages.length - 1}
               {...msg}
               progressSteps={progressMap[msg.messageId]}
+              onSendConfirmationResponse={onSendConfirmationResponse}
             />
           ))}
           {shouldShowQuestions && <QuestionsSelector

@@ -70,6 +70,16 @@ export interface ChatState {
   sessionId: string;
   userId: string;
   questions: string[];
+  confirmation: {
+    messageId: string;
+    message: string;
+    confirmationMessage: string;
+    sql_query: string;
+    dax_query: string;
+    is_dax_measure: boolean;
+    is_sql_query: boolean;
+    requiresUserInput: boolean;
+  } | null;
 }
 
 export interface ChatActions {
@@ -107,6 +117,17 @@ export interface ChatActions {
   setDetailedRawResult: (messageId: string, rawResult: unknown) => void;
   setWarehouseQuery: (messageId: string, isWarehouseQuery: boolean) => void;
   requireFilters: (messageId: string) => void;
+  setConfirmation: (
+    messageId: string,
+    message: string,
+    confirmationMessage: string,
+    sql_query: string,
+    dax_query: string,
+    is_dax_measure: boolean,
+    is_sql_query: boolean,
+    requiresUserInput: boolean
+  ) => void;
+  clearConfirmation: () => void;
 }
 
 export interface SessionState {

@@ -98,6 +98,8 @@ export function useWsClient({
     setDetailedRawResult,
     setWarehouseQuery,
     setQuestions,
+    setConfirmation,
+    clearConfirmation,
   } = useStore();
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -300,6 +302,27 @@ export function useWsClient({
                 addSession(newSession);
               }
 
+              // Handle waiting_confirmation update_type
+              if (data.update_type === "waiting_confirmation") {
+                const confirmationData = data.data as any;
+                if (
+                  confirmationData?.message &&
+                  confirmationData?.confirmation_message &&
+                  message_id
+                ) {
+                  setConfirmation(
+                    message_id,
+                    confirmationData.message,
+                    confirmationData.confirmation_message,
+                    confirmationData.sql_query || "",
+                    confirmationData.dax_query || "",
+                    confirmationData.is_dax_measure || "",
+                    confirmationData.is_sql_query || "",
+                    confirmationData.requires_user_input || false
+                  );
+                }
+              }
+
               // Handle detailed_formatting_complete update_type
               if (data.update_type === "detailed_formatting_complete") {
                 if (detailed_formatted_result && message_id) {
@@ -458,6 +481,30 @@ export function useWsClient({
   );
 
   /**
+   * Send confirmation response to the server.
+   */
+  const sendConfirmationResponse = useCallback(
+    (messageId: string, confirmationMessage: string): void => {
+      const client = clientRef.current;
+      if (!client) throw new Error("WebSocket client not connected");
+
+      // Add a user message showing the confirmation
+      addMessage("user", confirmationMessage, messageId);
+      clearConfirmation();
+      client.send({
+        type: "query",
+        content: "run",
+        message_id: messageId,
+        data: {
+          session_id: sessionId,
+          user_id: userId,
+        },
+      });
+    },
+    [sessionId, userId, addMessage]
+  );
+
+  /**
    * Get chat history for a specific session.
    */
   const getChatHistory = useCallback(
@@ -481,6 +528,7 @@ export function useWsClient({
     sendQuery,
     cancelRequest,
     sendFilterResponse,
+    sendConfirmationResponse,
     getChatHistory,
   } as const;
 }

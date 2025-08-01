@@ -23,6 +23,7 @@ function App() {
     getChatHistory,
     handleSendMessage,
     handleSendFilterResponse,
+    handleSendConfirmationResponse,
     cancelRequest,
   } = useChatLogic(serverUrl);
 
@@ -42,7 +43,8 @@ function App() {
               progressMap={progressMap}
               onCancelRequest={cancelRequest}
               onSendMessage={handleSendMessage}
-              onSendFilterResponse={handleSendFilterResponse} 
+              onSendFilterResponse={handleSendFilterResponse}
+              onSendConfirmationResponse={handleSendConfirmationResponse}
             />
           </SidebarInset>
         </div>

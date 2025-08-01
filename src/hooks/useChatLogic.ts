@@ -5,7 +5,6 @@ import { useWsClient } from "@/hooks/useWsClient";
 import {
   getUserIdFromUrl,
   isDevelopmentMode,
-  getDevUserId,
 } from "@/config/security";
 
 export function useChatLogic(serverUrl: string) {
@@ -16,6 +15,7 @@ export function useChatLogic(serverUrl: string) {
     sendQuery,
     cancelRequest,
     sendFilterResponse,
+    sendConfirmationResponse,
     getChatHistory,
   } = useWsClient({
     serverUrl,
@@ -67,11 +67,23 @@ export function useChatLogic(serverUrl: string) {
     [sendFilterResponse]
   );
 
+  const handleSendConfirmationResponse = useCallback(
+    (messageId: string, confirmationMessage: string) => {
+      try {
+        sendConfirmationResponse(messageId, confirmationMessage);
+      } catch (error) {
+        console.error("Failed to send confirmation response:", error);
+      }
+    },
+    [sendConfirmationResponse]
+  );
+
   return {
     isConnecting,
     getChatHistory,
     handleSendMessage,
     handleSendFilterResponse,
+    handleSendConfirmationResponse,
     cancelRequest,
   };
 }

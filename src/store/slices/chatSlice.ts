@@ -23,6 +23,7 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
   sessionId: "",
   userId: "",
   questions: [],
+  confirmation: null,
 
   // Actions
   setPending: (pending) => set({ pending }),
@@ -193,4 +194,20 @@ export const createChatSlice: StateCreator<ChatSlice, [], [], ChatSlice> = (
     const duration = thinkingEndTime.getTime() - thinkingStartTime.getTime();
     return Math.floor(duration / 1000);
   },
+
+  setConfirmation: (messageId, message, confirmationMessage, sql_query, dax_query, is_dax_measure, is_sql_query, requiresUserInput) =>
+    set({
+      confirmation: {
+        messageId,
+        message,
+        confirmationMessage,
+        sql_query,
+        requiresUserInput,
+        dax_query,
+        is_dax_measure,
+        is_sql_query,
+      },
+    }),
+
+  clearConfirmation: () => set({ confirmation: null }),
 });
