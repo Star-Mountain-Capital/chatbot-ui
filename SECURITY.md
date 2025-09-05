@@ -19,6 +19,7 @@ The app is configured to only be accessible when embedded as an iframe from the 
 ### Implementation Details
 
 #### IframeGuard Component
+
 - Checks if the app is running in an iframe
 - Validates the parent window's origin against the allowed domain
 - Shows a loading state while checking
@@ -26,15 +27,17 @@ The app is configured to only be accessible when embedded as an iframe from the 
 - Only renders the app content if access is granted
 
 #### Security Headers
+
 - `X-Frame-Options`: Legacy header for iframe control
 - `Content-Security-Policy`: Modern header for iframe control with better browser support
 
 #### Configuration
+
 ```typescript
 export const SECURITY_CONFIG = {
-  ALLOWED_IFRAME_DOMAIN: "https://retool.starmountaincapital.com",
+  ALLOWED_IFRAME_DOMAIN: 'https://retool.starmountaincapital.com',
   ENABLE_IFRAME_GUARD: true,
-  ENABLE_CSP_HEADERS: true,
+  ENABLE_CSP_HEADERS: true
 } as const;
 ```
 
@@ -47,13 +50,15 @@ To embed this app in Retool:
 3. Ensure the Retool app is hosted on `https://retool.starmountaincapital.com`
 
 Example iframe configuration in Retool:
+
 ```html
-<iframe 
-  src="https://your-app-domain.com" 
-  width="100%" 
+<iframe
+  src="https://your-app-domain.com"
+  width="100%"
   height="600px"
   frameborder="0"
-  allowfullscreen>
+  allowfullscreen
+>
 </iframe>
 ```
 
@@ -84,4 +89,4 @@ To test the iframe guard:
 
 - Modern browsers support both `X-Frame-Options` and `Content-Security-Policy` headers
 - The iframe guard works in all modern browsers with JavaScript enabled
-- Graceful fallback for older browsers that don't support CSP headers 
+- Graceful fallback for older browsers that don't support CSP headers

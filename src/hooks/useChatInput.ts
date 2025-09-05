@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { useStore } from "@/store";
-import { ChatMessageProps } from "@/components/ChatMessage";
+import { useState, useRef, useEffect } from 'react';
+
+import { useStore } from '@/store';
 
 interface UseChatInputProps {
   messages: ChatMessageProps[];
@@ -13,13 +13,12 @@ export function useChatInput({
   messages,
   onSendMessage,
   connectionStatus,
-  hasActiveRequest,
+  hasActiveRequest
 }: UseChatInputProps) {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get filters from store
   const { filtersMap } = useStore();
@@ -31,7 +30,7 @@ export function useChatInput({
       if (filtersMap[message.messageId]) {
         return {
           messageId: message.messageId,
-          filters: filtersMap[message.messageId],
+          filters: filtersMap[message.messageId]
         };
       }
     }
@@ -40,16 +39,8 @@ export function useChatInput({
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [inputValue]);
 
   // Tooltip auto-show/hide logic
   useEffect(() => {
@@ -59,18 +50,20 @@ export function useChatInput({
         setShowTooltip(false);
       }
     }, 5000);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [isHovering]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (
       inputValue.trim() &&
-      connectionStatus === "connected" &&
+      connectionStatus === 'connected' &&
       !hasActiveRequest
     ) {
       onSendMessage(inputValue);
-      setInputValue("");
+      setInputValue('');
     }
   };
 
@@ -78,10 +71,9 @@ export function useChatInput({
     inputValue,
     setInputValue,
     showTooltip,
-    textareaRef,
     messagesEndRef,
     activeFilters,
     handleSubmit,
-    setIsHovering,
+    setIsHovering
   };
-} 
+}

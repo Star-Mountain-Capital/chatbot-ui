@@ -1,20 +1,20 @@
 function onClientError(error) {
-  console.error("Error from inspector client:", error);
+  console.error('Error from inspector client:', error);
 }
 
 function onServerError(error) {
-  console.error("Error from MCP server:", error);
+  console.error('Error from MCP server:', error);
 }
 
 export default function mcpProxy({ transportToClient, transportToServer }) {
   let transportToClientClosed = false;
   let transportToServerClosed = false;
 
-  transportToClient.onmessage = (message) => {
+  transportToClient.onmessage = message => {
     transportToServer.send(message).catch(onServerError);
   };
 
-  transportToServer.onmessage = (message) => {
+  transportToServer.onmessage = message => {
     transportToClient.send(message).catch(onClientError);
   };
 

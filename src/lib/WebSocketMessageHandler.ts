@@ -1,7 +1,7 @@
-import { Filter, Session, SessionsData } from "@/store/types";
+import type { Filter, Session, SessionsData } from '@/store/types';
 
 // Add MessageRole type
-export type MessageRole = "user" | "assistant" | "system" | "tool";
+export type MessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
 interface ChatHistoryMessage {
   message_id: string;
@@ -95,7 +95,7 @@ export class WebSocketMessageHandler {
     addSession,
     completeQuery,
     requireFilters,
-    clearMessages,
+    clearMessages
   }: {
     addMessage: AddMessage;
     setProgressMap: SetProgressMap;
@@ -123,19 +123,19 @@ export class WebSocketMessageHandler {
   }
 
   handleMessage(payload: unknown) {
-    if (typeof payload !== "object" || payload === null) return;
+    if (typeof payload !== 'object' || payload === null) return;
     const data = payload as ProgressPayload;
     switch (data.type) {
-      case "progress":
+      case 'progress':
         this.handleProgress(data);
         break;
-      case "query_completed":
+      case 'query_completed':
         this.handleQueryCompleted(data);
         break;
-      case "chat_history_response":
+      case 'chat_history_response':
         this.handleChatHistoryResponse(data);
         break;
-      case "connected":
+      case 'connected':
         if (data.sessions_data) {
           this.setSessionsData(data.sessions_data);
         }
@@ -148,7 +148,7 @@ export class WebSocketMessageHandler {
   private handleProgress(data: ProgressPayload) {
     const { message_id, message, step, filters, session_id, title } =
       data.data || {};
-    if (data.update_type === "title_generated" && session_id && title) {
+    if (data.update_type === 'title_generated' && session_id && title) {
       const newSession = {
         session_id,
         title,
@@ -156,20 +156,20 @@ export class WebSocketMessageHandler {
         updated_at: data.timestamp || new Date().toISOString(),
         is_active: true,
         metadata: {
-          query_type: "assistant_query",
+          query_type: 'assistant_query',
           session_id,
-          workflow_type: "default",
-        },
+          workflow_type: 'default'
+        }
       };
       this.addSession(newSession);
     }
     if (message && message_id) {
       this.updateProgressMap(message_id, message);
     }
-    if (step === "waiting_filters" && filters && message_id) {
+    if (step === 'waiting_filters' && filters && message_id) {
       this.setFilters(message_id, filters);
       this.requireFilters(message_id);
-    } else if (step === "complete" && message_id) {
+    } else if (step === 'complete' && message_id) {
       this.setPending(false);
       this.completeQuery(message_id);
     }
@@ -178,7 +178,7 @@ export class WebSocketMessageHandler {
   private handleQueryCompleted(data: ProgressPayload) {
     const { message_id, message } = data.data || data.result || {};
     if (message && message_id) {
-      this.addMessage("tool", message, message_id);
+      this.addMessage('tool', message, message_id);
     }
     if (message_id) {
       this.setPending(false);
@@ -196,11 +196,11 @@ export class WebSocketMessageHandler {
       (a, b) => a.message_order - b.message_order
     );
 
-    sortedMessages.forEach((msg) => {
+    sortedMessages.forEach(msg => {
       const { role, content, metadata } = msg;
-      if (role === "user" || role === "assistant" || role === "tool") {
+      if (role === 'user' || role === 'assistant' || role === 'tool') {
         this.addMessage(role, content, metadata?.message_id as string);
-      } else if (role === "system") {
+      } else if (role === 'system') {
         if (metadata?.workflow_data?.message_id) {
           const progressMessageId = metadata.workflow_data.message_id;
           if (!newProgressMap[progressMessageId]) {

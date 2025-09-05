@@ -1,0 +1,16 @@
++ls:
+  .app.json: kebab-case
+  .config.js: kebab-case
+  .config.ts: kebab-case
+  .d.ts: kebab-case
+  .dir: kebab-case
+  .html: regex:[a-z0-9]+
+  .json: kebab-case
+  .node.json: kebab-case
+  .svg: kebab-case
+  .ts: kebab-case
+  .tsx: PascalCase | kebab-case
+
+ignore:
+  - .git
+  - node_modules
