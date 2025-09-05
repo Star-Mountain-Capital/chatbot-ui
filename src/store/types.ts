@@ -1,5 +1,4 @@
-import { ChatMessageProps, MessageRole } from "@/components/ChatMessage";
-import { BusinessEntitiesSlice } from "./slices/businessEntitiesSlice";
+import type { BusinessEntitiesSlice } from './slices/businessEntitiesSlice';
 
 export interface Filter {
   column?: string;
@@ -12,13 +11,7 @@ export interface Filter {
   available_options?: string[];
 }
 
-export type Status = "connected" | "disconnected" | "error";
-
-export interface SelectedItem {
-  id: string;
-  name: string;
-  type: string;
-}
+export type Status = 'connected' | 'disconnected' | 'error';
 
 export interface Session {
   session_id: string;
@@ -141,18 +134,19 @@ export interface SessionActions {
   addSession: (session: Session) => void;
 }
 
-export type ChatSlice = ChatState & ChatActions;
-export type SessionSlice = SessionState & SessionActions;
+type ChatSlice = ChatState & ChatActions;
+type SessionSlice = SessionState & SessionActions;
 
 export type StoreSlice = ChatSlice & SessionSlice & BusinessEntitiesSlice;
 
-export interface ChartSuggestion {
-  supported: boolean;
-  allowable_axes: {
-    x: string[];
-    y: Record<string, string[]>;
-    z?: Record<string, string[]>;
-  };
-}
-
-export type ChartSuggestionsByType = Record<string, ChartSuggestion>;
+export type ChartSuggestionsByType = Record<
+  string,
+  {
+    supported: boolean;
+    allowable_axes: {
+      x: string[];
+      y: Record<string, string[]>;
+      z?: Record<string, string[]>;
+    };
+  }
+>;

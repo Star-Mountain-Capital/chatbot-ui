@@ -1,4 +1,4 @@
-import { Status } from "@/store/types";
+import type { Status } from '@/store/types';
 
 export interface WSClientOptions {
   serverUrl: string;
@@ -24,7 +24,7 @@ export class WsClient {
     // Send ping every 30 seconds to keep connection alive
     this.pingInterval = setInterval(() => {
       if (this.socket?.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify({ type: "ping" }));
+        this.socket.send(JSON.stringify({ type: 'ping' }));
       }
     }, 30000);
   }
@@ -41,30 +41,30 @@ export class WsClient {
       try {
         this.socket = new WebSocket(this.options.serverUrl);
 
-        this.socket.addEventListener("open", () => {
-          this.options.onStatusChange?.("connected");
+        this.socket.addEventListener('open', () => {
+          this.options.onStatusChange?.('connected');
           this.startPing();
           resolve();
         });
 
-        this.socket.addEventListener("error", (evt) => {
-          console.error("WebSocket error", evt);
+        this.socket.addEventListener('error', evt => {
+          console.error('WebSocket error', evt);
           this.stopPing();
-          this.options.onStatusChange?.("error");
+          this.options.onStatusChange?.('error');
           reject(evt);
         });
 
-        this.socket.addEventListener("close", () => {
+        this.socket.addEventListener('close', () => {
           this.stopPing();
-          this.options.onStatusChange?.("disconnected");
+          this.options.onStatusChange?.('disconnected');
         });
 
-        this.socket.addEventListener("message", (evt) => {
+        this.socket.addEventListener('message', evt => {
           try {
             const payload = JSON.parse(evt.data);
             this.options.onProgress?.(payload);
           } catch (err) {
-            console.warn("Failed to parse WS message", err);
+            console.warn('Failed to parse WS message', err);
           }
         });
       } catch (err) {
@@ -84,5 +84,4 @@ export class WsClient {
   public send(data: unknown): void {
     this.socket?.send(JSON.stringify(data));
   }
-
-} 
+}

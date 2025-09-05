@@ -1,9 +1,8 @@
-import { v4 as uuidv4 } from "uuid";
-import { config } from "./index";
+import { config } from './index';
 
 export const SECURITY_CONFIG = {
   // The only domain allowed to embed this app in an iframe
-  ALLOWED_IFRAME_DOMAIN: config.VITE_ALLOWED_IFRAME_DOMAIN,
+  ALLOWED_IFRAME_DOMAIN: config.VITE_ALLOWED_IFRAME_DOMAIN
 } as const;
 
 // Helper function to check if a domain is allowed
@@ -11,20 +10,15 @@ export function isAllowedDomain(domain: string): boolean {
   // Normalize domain (remove trailing slash)
   const normalizedDomain = domain.replace(/\/$/, '');
   // Allow any subdomain of starmountaincapital.com (including the main domain)
-  return /^https?:\/\/[a-zA-Z0-9.-]*starmountaincapital\.com$/.test(normalizedDomain);
-}
-
-// Helper function to check if we're in development mode
-export function isDevelopmentMode(): boolean {
-  return config.VITE_ENV === 'dev';
+  return /^https?:\/\/[a-zA-Z0-9.-]*starmountaincapital\.com$/.test(
+    normalizedDomain
+  );
 }
 
 // Helper function to get and validate userId from URL
 export function getUserIdFromUrl(): string | null {
   // If in development mode, return null (no validation required)
-  if (isDevelopmentMode()) {
-    return null;
-  }
+  if (import.meta.env.DEV) return null;
 
   // Get userId from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
@@ -37,8 +31,3 @@ export function getUserIdFromUrl(): string | null {
 
   return userId;
 }
-
-// Helper function to get a userId in development mode
-export function getDevUserId(): string {
-  return config.VITE_DEV_USER_ID || uuidv4();
-} 

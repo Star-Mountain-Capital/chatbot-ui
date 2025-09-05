@@ -1,7 +1,17 @@
-import React, { useState } from "react";
-import { Switch } from "@/components/ui/switch";
-import { useTheme } from "@/components/theme-provider";
-import { useStore } from "@/store";
+import { FlaskConicalIcon, PenSquareIcon, SearchIcon } from 'lucide-react';
+import {
+  type ComponentProps,
+  type Dispatch,
+  type InputHTMLAttributes,
+  type SetStateAction,
+  useMemo,
+  useState
+} from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+import { ModeToggle } from '@/components/mode-toggle';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Sidebar,
   SidebarContent,
@@ -12,149 +22,139 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { Moon, Sun, Plus, Search, MessageSquare } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
-import { SearchChatsModal } from "./SearchChatsModal";
+  SidebarMenuItem
+} from '@/components/ui/sidebar';
+import { Toggle } from '@/components/ui/toggle';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
+import { useStore } from '@/store';
 
-interface AppSidebarProps {
-  onGetChatHistory: (sessionId: string) => void;
+interface Props extends ComponentProps<typeof Sidebar> {
+  getChatHistory: (targetSessionId: string) => void;
+  setShowHardCodedData: Dispatch<SetStateAction<boolean>>;
+  showHardCodedData: boolean;
 }
 
-export const AppSidebar = React.memo(function AppSidebar({ onGetChatHistory }: AppSidebarProps) {
-  const { theme, setTheme } = useTheme();
-  const { state } = useSidebar();
-  const { sessions, setSessionId, clearMessages, setQuestions } = useStore();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+const AppSidebar = ({
+  getChatHistory,
+  setShowHardCodedData,
+  showHardCodedData,
+  ...sidebarProps
+}: Props) => {
+  const { clearMessages, sessions, setQuestions, setSessionId } = useStore();
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+  const [searchValue, setSearchValue] = useState('');
 
-  const handleNewChat = () => {
-    // Clear messages and create new session
+  const handleNewChatButtonClick = () => {
     clearMessages();
-    const newSessionId = uuidv4();
-    setSessionId(newSessionId);
+    setSessionId(uuidv4());
     setQuestions([]);
   };
 
-  const handleSearchChats = () => {
-    setIsSearchModalOpen(true);
-  };
-
-  const handleChatSelect = (sessionId: string) => {
-    console.log("Session selected:", sessionId);
+  const handleSidebarMenuButtonClick = (sessionId: string) => () => {
     // Clear existing messages first
-    clearMessages();
+    //clearMessages();
     // Set the new session ID
     setSessionId(sessionId);
     // Fetch the chat history for the selected session
-    onGetChatHistory(sessionId);
+    getChatHistory(sessionId);
   };
 
-  return (
-    <>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="border-b border-border/5 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex h-[60px] items-center justify-between">
-            {state === "expanded" && (
-              <div className="flex items-center gap-2">
-                <img
-                  src="/logo.svg"
-                  alt="SMC Assistant Logo"
-                  className="h-10 w-10 bg-white rounded-md"
-                />
-                <div>SMC Assistant</div>
-              </div>
-            )}
-            <SidebarTrigger />
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={handleNewChat}
-                    className="w-full justify-start"
-                    tooltip="New Chat"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span className="ml-2">New Chat</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={handleSearchChats}
-                    className="w-full justify-start"
-                    tooltip="Search Chats"
-                  >
-                    <Search className="h-4 w-4" />
-                    <span className="ml-2">Search Chats</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Chat History</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {state === "expanded" &&
-                  sessions.map((session) => (
-                    <SidebarMenuItem key={session.session_id}>
-                      <SidebarMenuButton
-                        onClick={() => handleChatSelect(session.session_id)}
-                        className="w-full justify-start"
-                        tooltip={session.title}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        <span className="ml-2 truncate">{session.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter className="border-t border-border/5 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex h-[60px] items-center justify-center">
-            {state === "expanded" ? (
-              <div className="flex items-center gap-2 w-full">
-                {theme === "dark" ? (
-                  <Moon className="h-4 w-4" />
-                ) : (
-                  <Sun className="h-4 w-4" />
-                )}
-                <span className="text-sm">Theme</span>
-                <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={toggleTheme}
-                  className="ml-auto scale-90"
-                />
-              </div>
-            ) : (
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={toggleTheme}
-                className="scale-75"
-              />
-            )}
-          </div>
-        </SidebarFooter>
-      </Sidebar>
-
-      <SearchChatsModal
-        open={isSearchModalOpen}
-        onOpenChange={setIsSearchModalOpen}
-        onSelectSession={handleChatSelect}
-      />
-    </>
+  const filteredSessions = useMemo(
+    () =>
+      sessions.filter(session =>
+        session.title.toLowerCase().includes(searchValue.toLowerCase())
+      ),
+    [searchValue, sessions]
   );
-});
+
+  const handleSearchChange: InputHTMLAttributes<HTMLInputElement>['onChange'] =
+    event => {
+      setSearchValue(event.target.value);
+    };
+
+  return (
+    <Sidebar
+      collapsible="offcanvas"
+      {...sidebarProps}
+    >
+      <SidebarHeader>
+        <Button
+          onClick={handleNewChatButtonClick}
+          variant="secondary"
+        >
+          <PenSquareIcon />
+          New Chat
+        </Button>
+        <div className="relative w-full">
+          <SearchIcon
+            className="text-muted-foreground absolute top-0 bottom-0 left-3 my-auto"
+            size={16}
+          />
+          <Input
+            className="bg-accent dark:bg-input/50 border-none pl-8"
+            onChange={handleSearchChange}
+            placeholder="Search"
+            type="search"
+            value={searchValue}
+          />
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Chat History</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {filteredSessions.map(session => (
+                <SidebarMenuItem key={session.title}>
+                  <SidebarMenuButton
+                    onClick={handleSidebarMenuButtonClick(session.session_id)}
+                    tooltip={session.title}
+                  >
+                    <span>{session.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-x-2">
+            <img src="/avatar.png" />
+            <div className="text-sm leading-none font-semibold">SMC</div>
+          </div>
+          <div className="flex gap-x-2">
+            <Tooltip>
+              <TooltipTrigger>
+                <Toggle
+                  onPressedChange={pressed => {
+                    setShowHardCodedData(pressed);
+                  }}
+                  pressed={showHardCodedData}
+                  variant="outline"
+                >
+                  <FlaskConicalIcon />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {showHardCodedData
+                    ? 'Hide hard-coded data'
+                    : 'Show hard-coded data'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            <ModeToggle />
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+};
+
+export { AppSidebar };

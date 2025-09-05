@@ -1,9 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useRef, useState } from "react";
-import { WsClient } from "@/lib/wsClient";
-import { Filter, SessionsData, ChartSuggestionsByType } from "@/store/types";
-import { v4 as uuidv4 } from "uuid";
-import { useStore } from "@/store";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+import { WsClient } from '@/lib/wsClient';
+import { useStore } from '@/store';
+import type {
+  Filter,
+  SessionsData,
+  ChartSuggestionsByType
+} from '@/store/types';
 
 interface UseWsClientOptions {
   serverUrl: string;
@@ -12,7 +16,7 @@ interface UseWsClientOptions {
 
 interface ChatHistoryMessage {
   message_id: string;
-  role: "user" | "assistant" | "system";
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
   message_order: number;
@@ -72,7 +76,7 @@ interface ProgressPayload {
 
 export function useWsClient({
   serverUrl,
-  autoConnect = true,
+  autoConnect = true
 }: UseWsClientOptions) {
   const {
     setStatus,
@@ -99,7 +103,7 @@ export function useWsClient({
     setWarehouseQuery,
     setQuestions,
     setConfirmation,
-    clearConfirmation,
+    clearConfirmation
   } = useStore();
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -122,7 +126,7 @@ export function useWsClient({
         (a, b) => a.message_order - b.message_order
       );
       // Process each message
-      sortedMessages.forEach((msg) => {
+      sortedMessages.forEach(msg => {
         const {
           role,
           content,
@@ -130,41 +134,37 @@ export function useWsClient({
           raw_data,
           formatted_data,
           chart_suggestions,
-          message_id,
+          message_id
         } = msg;
-        if (role === "user") {
+        if (role === 'user') {
           // Add user message
-          addMessage("user", content, metadata?.message_id as string);
-        } else if (role === "assistant") {
+          addMessage('user', content, metadata?.message_id as string);
+        } else if (role === 'assistant') {
           // Add assistant message
           if (
-            metadata?.message_type === "dax_response" ||
-            metadata?.query_type === "dax_measure"
+            metadata?.message_type === 'dax_response' ||
+            metadata?.query_type === 'dax_measure'
           ) {
-            addMessage(
-              "tool",
-              content,
-              (message_id ?? msg.message_id) as string
-            );
+            addMessage('tool', content, message_id ?? msg.message_id);
           } else {
             addMessage(
-              "tool",
-              raw_data && typeof raw_data === "string"
+              'tool',
+              raw_data && typeof raw_data === 'string'
                 ? JSON.parse(raw_data)
                 : content,
-              message_id as string
+              message_id
             );
-            setRawResult(message_id as string, JSON.parse(raw_data ?? "{}"));
+            setRawResult(message_id, JSON.parse(raw_data ?? '{}'));
             setDetailedFormattedResult(
-              message_id as string,
-              JSON.parse(formatted_data ?? "{}")
+              message_id,
+              JSON.parse(formatted_data ?? '{}')
             );
             setChartSuggestions(
-              message_id as string,
-              JSON.parse(chart_suggestions ?? "{}")
+              message_id,
+              JSON.parse(chart_suggestions ?? '{}')
             );
           }
-        } else if (role === "system") {
+        } else if (role === 'system') {
           // System messages contain progress information
           if (metadata?.workflow_data?.message_id) {
             const progressMessageId = metadata.workflow_data.message_id;
@@ -192,23 +192,23 @@ export function useWsClient({
 
       const client = new WsClient({
         serverUrl,
-        onStatusChange: (status) => {
+        onStatusChange: status => {
           setStatus(status);
-          if (status !== "connected") {
+          if (status !== 'connected') {
             setIsConnecting(false);
           } else {
             // Send user ID and session ID on connect
             client.send({
-              type: "connect",
+              type: 'connect',
               data: {
                 session_id: sessionId,
-                user_id: userId,
-              },
+                user_id: userId
+              }
             });
           }
         },
         onProgress: (payload: unknown) => {
-          if (typeof payload !== "object" || payload === null) return;
+          if (typeof payload !== 'object' || payload === null) return;
 
           const data = payload as ProgressPayload;
           const type = data.type;
@@ -235,7 +235,7 @@ export function useWsClient({
               detailed_raw_result,
               is_warehouse_query,
               multiple_questions_detected,
-              questions,
+              questions
             } = data.data as any);
           } else if (data.result) {
             ({
@@ -249,7 +249,7 @@ export function useWsClient({
               detailed_raw_result,
               is_warehouse_query,
               multiple_questions_detected,
-              questions,
+              questions
             } = data.result as any);
           }
           if (multiple_questions_detected && questions?.length) {
@@ -264,13 +264,13 @@ export function useWsClient({
           if (!!is_warehouse_query && message_id) {
             setWarehouseQuery(message_id, is_warehouse_query);
           }
-          if (type === "connected" && data.sessions_data) {
+          if (type === 'connected' && data.sessions_data) {
             // Store the sessions data when connected
             setSessionsData(data.sessions_data);
           }
 
           // Handle chat history response separately as it doesn't require message_id
-          if (type === "chat_history_response") {
+          if (type === 'chat_history_response') {
             if (data.history_data?.messages) {
               handleChatHistoryResponse(data.history_data.messages);
             }
@@ -280,10 +280,10 @@ export function useWsClient({
           if (!message_id) return;
 
           switch (type) {
-            case "progress": {
+            case 'progress': {
               // Handle title_generated update_type
               if (
-                data.update_type === "title_generated" &&
+                data.update_type === 'title_generated' &&
                 data.data?.session_id &&
                 data.data?.title
               ) {
@@ -294,16 +294,16 @@ export function useWsClient({
                   updated_at: data.timestamp || new Date().toISOString(),
                   is_active: true,
                   metadata: {
-                    query_type: "assistant_query",
+                    query_type: 'assistant_query',
                     session_id: data.data.session_id,
-                    workflow_type: "default",
-                  },
+                    workflow_type: 'default'
+                  }
                 };
                 addSession(newSession);
               }
 
               // Handle waiting_confirmation update_type
-              if (data.update_type === "waiting_confirmation") {
+              if (data.update_type === 'waiting_confirmation') {
                 const confirmationData = data.data as any;
                 if (
                   confirmationData?.message &&
@@ -314,17 +314,17 @@ export function useWsClient({
                     message_id,
                     confirmationData.message,
                     confirmationData.confirmation_message,
-                    confirmationData.sql_query || "",
-                    confirmationData.dax_query || "",
-                    confirmationData.is_dax_measure || "",
-                    confirmationData.is_sql_query || "",
+                    confirmationData.sql_query || '',
+                    confirmationData.dax_query || '',
+                    confirmationData.is_dax_measure || '',
+                    confirmationData.is_sql_query || '',
                     confirmationData.requires_user_input || false
                   );
                 }
               }
 
               // Handle detailed_formatting_complete update_type
-              if (data.update_type === "detailed_formatting_complete") {
+              if (data.update_type === 'detailed_formatting_complete') {
                 if (detailed_formatted_result && message_id) {
                   setDetailedFormattedResult(
                     message_id,
@@ -342,18 +342,18 @@ export function useWsClient({
               if (message) {
                 updateProgressMap(message_id, message);
               }
-              if (step === "waiting_filters" && filters) {
+              if (step === 'waiting_filters' && filters) {
                 setFilters(message_id, filters);
                 requireFilters(message_id);
-              } else if (step === "complete") {
+              } else if (step === 'complete') {
                 setPending(false);
                 completeQuery(message_id);
               }
               break;
             }
-            case "query_completed": {
-              if (!!message === true) {
-                addMessage("tool", message, message_id);
+            case 'query_completed': {
+              if (message) {
+                addMessage('tool', message, message_id);
               }
               setPending(false);
               setThinkingEndTime(message_id, new Date());
@@ -363,7 +363,7 @@ export function useWsClient({
             default:
               break;
           }
-        },
+        }
       });
 
       clientRef.current = client;
@@ -371,7 +371,7 @@ export function useWsClient({
         await client.connect();
         setIsConnecting(false);
       } catch (err) {
-        console.error("Failed to connect to websocket server", err);
+        console.error('Failed to connect to websocket server', err);
         setIsConnecting(false);
       }
     },
@@ -388,7 +388,7 @@ export function useWsClient({
       completeQuery,
       requireFilters,
       setChartSuggestions,
-      setRawResult,
+      setRawResult
     ]
   );
 
@@ -417,18 +417,18 @@ export function useWsClient({
       }
 
       const client = clientRef.current;
-      if (!client) throw new Error("WebSocket client not connected");
+      if (!client) throw new Error('WebSocket client not connected');
 
       setPending(true);
       setThinkingStartTime(messageId);
       client.send({
-        type: "query",
+        type: 'query',
         message_id: messageId,
         content: query,
         data: {
           session_id: sessionId,
-          user_id: userId,
-        },
+          user_id: userId
+        }
       });
     },
     [connect, addMessage, setPending, setThinkingStartTime, sessionId, userId]
@@ -439,11 +439,11 @@ export function useWsClient({
    */
   const cancelRequest = useCallback(() => {
     clientRef.current?.send({
-      type: "cancel",
+      type: 'cancel',
       data: {
         session_id: sessionId,
-        user_id: userId,
-      },
+        user_id: userId
+      }
     });
     setPending(false);
   }, [setPending, sessionId, userId]);
@@ -454,7 +454,7 @@ export function useWsClient({
   const sendFilterResponse = useCallback(
     (filterValues: Record<string, string>): void => {
       const client = clientRef.current;
-      if (!client) throw new Error("WebSocket client not connected");
+      if (!client) throw new Error('WebSocket client not connected');
 
       // Generate a new message ID for the filter response message
       const filterMessageId = uuidv4();
@@ -462,19 +462,19 @@ export function useWsClient({
       // Format the filter values into a readable message
       const filterContent = Object.entries(filterValues)
         .map(([key, value]) => `${key}: ${value}\n`)
-        .join(", ");
+        .join(', ');
 
       // Add a user message showing the filter values
-      addMessage("user", `Applied filters: ${filterContent}`, filterMessageId);
+      addMessage('user', `Applied filters: ${filterContent}`, filterMessageId);
 
       client.send({
-        type: "query",
+        type: 'query',
         content: filterValues,
         message_id: filterMessageId,
         data: {
           session_id: sessionId,
-          user_id: userId,
-        },
+          user_id: userId
+        }
       });
     },
     [sessionId, userId, addMessage]
@@ -486,19 +486,19 @@ export function useWsClient({
   const sendConfirmationResponse = useCallback(
     (messageId: string, confirmationMessage: string): void => {
       const client = clientRef.current;
-      if (!client) throw new Error("WebSocket client not connected");
+      if (!client) throw new Error('WebSocket client not connected');
 
       // Add a user message showing the confirmation
-      addMessage("user", confirmationMessage, messageId);
+      addMessage('user', confirmationMessage, messageId);
       clearConfirmation();
       client.send({
-        type: "query",
-        content: "run",
+        type: 'query',
+        content: 'run',
         message_id: messageId,
         data: {
           session_id: sessionId,
-          user_id: userId,
-        },
+          user_id: userId
+        }
       });
     },
     [sessionId, userId, addMessage]
@@ -510,14 +510,14 @@ export function useWsClient({
   const getChatHistory = useCallback(
     (targetSessionId: string): void => {
       const client = clientRef.current;
-      if (!client) throw new Error("WebSocket client not connected");
+      if (!client) throw new Error('WebSocket client not connected');
 
       client.send({
-        type: "get_chat_history",
+        type: 'get_chat_history',
         data: {
           session_id: targetSessionId,
-          user_id: userId,
-        },
+          user_id: userId
+        }
       });
     },
     [userId]
@@ -529,6 +529,6 @@ export function useWsClient({
     cancelRequest,
     sendFilterResponse,
     sendConfirmationResponse,
-    getChatHistory,
+    getChatHistory
   } as const;
 }
